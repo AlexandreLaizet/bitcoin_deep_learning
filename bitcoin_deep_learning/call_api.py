@@ -5,10 +5,11 @@ import time
 import datetime
 from datetime import date, timedelta
 #from dotenv import load_dotenv, find_dotenv
-import os
 from dotenv import load_dotenv
 load_dotenv()
+import os
 API_KEY = os.getenv('API_KEY')
+from params import ROOT_DIR
 
 class ApiCall():
     def __init__(self,API_KEY=API_KEY):
@@ -161,7 +162,7 @@ class ApiCall():
 
     def read_local(self,name="BTC_df"):
 
-        df = pd.read_csv('../data_raw/'+name+'.csv')
+        df = pd.read_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'))#('../data_raw/'+name+'.csv')
         # We verify if the local data is up to date
         if not  (pd.Timestamp(df["date"].iloc[-1]) ==
                             pd.Timestamp(date.today()- timedelta(days = 1))) :
