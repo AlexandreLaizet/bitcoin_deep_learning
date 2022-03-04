@@ -128,7 +128,7 @@ def cross_val(model, df, hyperparams=None):
     return score, np.mean(score)
 
 
-def cross_val_metrics(model, df:pd.DataFrame, hyperparams=None)->tuple(list,list,list) :
+def cross_val_metrics(model, df:pd.DataFrame, hyperparams=None) :
     '''Compute and process a complete cross validation of a given model,
     taking personalised metrics into account
     return Y_true, Y_pred, model_loss

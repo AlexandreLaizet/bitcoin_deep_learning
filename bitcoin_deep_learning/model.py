@@ -194,7 +194,7 @@ if __name__ == '__main__':
     # y_test = np.random.rand(n_sequences_t)
 
     #Call API
-    from bitcoin_deep_learning.cross_val import *
+    from bitcoin_deep_learning.cross_val import cross_val
     from bitcoin_deep_learning.call_api import ApiCall
     df = ApiCall().read_local()
 
