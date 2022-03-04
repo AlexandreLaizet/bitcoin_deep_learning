@@ -102,16 +102,16 @@ def play_hodl_strategy(y_true,
 
     return pd.Series(daily_portfolio_position)
 
-
-def play_trader_strategy(y_true,
-                         y_pred,
-                         total_investment = 400,
-                         investment_frequency = 7,
-                         buy_threshold = 0.05,
-                         sell_threshold = -0.10,
-                         buy_multiplicator = 2,
-                         sell_multiplicator = 2,
-                         exchange_fee = 0.005):
+def play_trader_strategy_2(y_true,
+                           y_pred,
+                           total_investment = 400,
+                           investment_frequency = 7,
+                           buy_threshold = 0.05,
+                           sell_threshold = -0.10,
+                           buy_multiplicator = 3,
+                           sell_multiplicator = 3,
+                           exchange_fee = 0.005,
+                           tax_rate = 0.30):
     """
     Takes y_true and y_pred pd.Series, total_investment, investment_frequency (in days), investment_threshold, exchange_fee.
     Returns a pd.Series of the daily portfolio positions).
@@ -133,13 +133,16 @@ def play_trader_strategy(y_true,
     # buy_multiplicator = 2
 
     # Enter a seller multiplicator (e.g., 2 times the price decrease rate predicted: 2 * 15%)
-    # sell_multiplicator = 2
+    # sell_multiplicator = 3
 
     # Enter the exchange fee applicable to each trade (e.g., 0.5% on Coinbase Pro)
     # exchange_fee = 0.005
 
+    # Enter the applicable tax rate (e.g., 30% for financial gains in France)
+    # tax_rate = 0.30
+
     # Periodic investment amount (e.g., total investment / number of weeks)
-    # investment_amount = total_investment / (len(y_true) / investment_frequency)
+    investment_amount = total_investment / (len(y_true) / investment_frequency)
 
     # List of daily percent change of y_true
     y_true_daily_pct_change = pd.Series(y_true).pct_change()
@@ -148,10 +151,10 @@ def play_trader_strategy(y_true,
     daily_portfolio_position = []
 
     # List of the price percent change over the investment horizon (e.g., D7 price / D0 price)
-    # y_true_percent_change = [(value / list(y_true)[index - investment_frequency])-1 for index, value in enumerate(list(y_true)) if index % investment_frequency == 0][1:]
+    y_true_percent_change = [(value / list(y_true)[index - investment_frequency])-1 for index, value in enumerate(list(y_true)) if index % investment_frequency == 0][1:]
 
     # List of returns over the investment horizon (e.g., D7 price / D0 price)
-    # investment_frequency_returns = []
+    investment_frequency_returns = []
 
     # USD balance
     usd_balance = total_investment
@@ -159,9 +162,20 @@ def play_trader_strategy(y_true,
     # Bitcoin balance in USD
     btc_usd_balance = 0
 
+    # Cost_basis list for tax calculation purposes
+    cost_basis = []
+
+    # Amount bought for cost_basis weighting
+    amount_bought = []
+
+    # Taxable basis (i.e., profits taken)
+    taxable_basis = []
+
+    taxes = 0
+
     # Counters for indexes during for-loop
     counter = 0
-    # counter_percent_change = 0
+    counter_percent_change = 0
 
     # Invest at each period of the investment horizon (e.g., weekly)
     for value in y_pred[::investment_frequency]:
@@ -172,42 +186,76 @@ def play_trader_strategy(y_true,
 
             predicted_move_ratio = (list(y_pred)[::investment_frequency][counter + 1] / list(y_true)[::investment_frequency][counter]) - 1
 
-            print(predicted_move_ratio)
+            #print(predicted_move_ratio)
 
             if predicted_move_ratio > buy_threshold:
                 if usd_balance <= 0:
                     pass
                 else:
+
+                    ### Tax ###
+                    cost_basis.append(list(y_true)[::investment_frequency][counter])
+                    amount_bought.append(usd_balance * (predicted_move_ratio * buy_multiplicator))
+                    ### Tax ###
+
                     btc_usd_balance += usd_balance * (predicted_move_ratio * buy_multiplicator) - ((usd_balance * (predicted_move_ratio * buy_multiplicator)) * exchange_fee)
                     usd_balance -= usd_balance * (predicted_move_ratio * buy_multiplicator)
-                    print(btc_usd_balance)
+                    # print(btc_usd_balance)
+
+
+                # TODO (buy because price is predicted to go up)
 
             if predicted_move_ratio < sell_threshold:
                 if btc_usd_balance == 0:
                     pass
+
                 else:
+
+                    ### Tax ###
+                    amount_sold = btc_usd_balance * (- predicted_move_ratio * sell_multiplicator) - ((btc_usd_balance * (- predicted_move_ratio * sell_multiplicator)) * exchange_fee)
+                    wa_cost_basis = (np.array(amount_bought) * np.array(cost_basis)).sum() / np.array(amount_bought).sum()
+                    taxable_basis.append(amount_sold * ((list(y_true)[::investment_frequency][counter] / wa_cost_basis) - 1))
+
+                    for index in range(len(amount_bought)):
+                        amount_bought[index] -= amount_sold / len(amount_bought)
+
+                    ### Tax ###
+                    # print(amount_bought)
+
                     usd_balance += btc_usd_balance * (- predicted_move_ratio * sell_multiplicator) - ((btc_usd_balance * (- predicted_move_ratio * sell_multiplicator)) * exchange_fee)
                     btc_usd_balance -= btc_usd_balance * (- predicted_move_ratio * sell_multiplicator)
-                    print(btc_usd_balance)
+                    #print(btc_usd_balance)
+                # TODO (buy because price is predicted to go down)
+
 
         for days in range(investment_frequency):
             if days == 0:
                 daily_portfolio_position.append(usd_balance + btc_usd_balance)
             else:
                 daily_portfolio_position.append(usd_balance + (btc_usd_balance + (btc_usd_balance * list(y_true_daily_pct_change)[days])))
-
+            #print(btc_usd_balance)
         counter += 1
 
         # print(btc_usd_balance)
-        #print(investment_frequency_returns)
+        # print(investment_frequency_returns)
 
     # Return On Investment = btc_usd_balance / total invested
-    # roi = (btc_usd_balance / total_investment) -1
+    # roi = (btc_usd_balance / total_investment) -1
 
+
+    # Return On Investment after taxes on trades
+
+    if np.array(taxable_basis).sum() > 0:
+        taxes += np.array(taxable_basis).sum() * tax_rate
+        daily_portfolio_position[-1] -= taxes
+
+    # roi_after_taxes_on_trades = ((btc_usd_balance + usd_balance - taxes) / total_investment) - 1
 
     #assert btc_usd_balance == daily_portfolio_position[- investment_frequency]
 
+    #return pd.Series(daily_portfolio_position)
     return pd.Series(daily_portfolio_position)
+
 
 
 #### NOTES ####

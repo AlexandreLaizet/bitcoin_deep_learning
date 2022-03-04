@@ -75,7 +75,6 @@ class LinearRegressionBaselineModel(BaseEstimator, TransformerMixin):
         self.model = ElasticNet(alpha =self.alpha,
                                 l1_ratio = self.l1_ratio,
                                 fit_intercept=True,
-                                normalize=False,
                                 precompute=False,
                                 max_iter=self.max_iter,
                                 copy_X=True,
@@ -192,20 +191,23 @@ if __name__ == '__main__':
     # y_train = np.random.rand(n_sequences)
     # X_test = np.random.rand(n_sequences_t, sequence_length, n_features)
     # y_test = np.random.rand(n_sequences_t)
-    from bitcoin_deep_learning.cross_val import cross_val
+
+    #Call API
+    from bitcoin_deep_learning.cross_val import *
     from bitcoin_deep_learning.call_api import ApiCall
     df = ApiCall().read_local()
-    reg_lin_model = LinearRegressionBaselineModel()
-    print(cross_val(model=reg_lin_model, df=df))
-    # print("X_test")
-    # print(X_test)
-    # print("X_train")
-    # print(X_train)
-    # print("y_train")
-    # print(y_train)
-    # print('run')
+
+    # Dummy model
+    dummy_model = DummyModel()
+    print(cross_val(dummy_model, df))
+
+    #Regression model
+    # reg_lin_model = LinearRegressionBaselineModel()
+    # print(cross_val(reg_lin_model, df))
+
+    #RNN model
     # dummy_model = DummyModel()
     # print(dummy_model.run(X_test, X_train, y_train))
     #print(reg_lin_model.run(X_test, X_train, y_train))
     # rnn_model = RnnDlModel()
-    # print(rnn_model.run(X_test, X_train, y_train))
+    # print(cross_val(rnn_model, df))

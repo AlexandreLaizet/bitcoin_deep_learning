@@ -74,32 +74,34 @@ def sequence_indexes(df,
 
 #from charles import Model
 
-def cross_val(model,
-              hyperparams=None,
-              df=None):
+
+def cross_val(model, df, hyperparams=None):
     df = df.drop(columns=["date"])
     prediction = []
     reality = []
     score = []
-    start_fold_train,end_fold_train,start_fold_test,end_fold_test = fold_indexes(df=df)
-    for i in range(len(start_fold_train)) :
+    start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
+        df=df)
+    for i in range(len(start_fold_train)):
         #reinitialise the model between two fold
         model.set_model()
-        train_fold_df = df.loc[start_fold_train[i]:end_fold_train[i]].copy().reset_index(drop=True)
+        train_fold_df = df.loc[start_fold_train[i]:end_fold_train[i]].copy(
+        ).reset_index(drop=True)
         #print(train_fold_df)
         #print("train fold shape is ",train_fold_df.shape)
         #print(train_fold_df.columns)
 
-        sequence_start,sequence_stop,target_idx = sequence_indexes(df = train_fold_df)
+        sequence_start, sequence_stop, target_idx = sequence_indexes(
+            df=train_fold_df)
         X_train = []
         Y_train = []
         #print(len(train_fold_df.shape))
         for j in range(len(sequence_start)):
-            X_train_seq = np.array(train_fold_df.iloc[sequence_start[j]:sequence_stop[j]])
-            y_train = train_fold_df.iloc[target_idx[j],-1]
-            X_train.append(X_train_seq)
-            Y_train.append(y_train)
-
+            X_train_seq = np.array(
+                train_fold_df.iloc[sequence_start[j]:sequence_stop[j]])
+            y_train = train_fold_df.iloc[target_idx[j], -1]
+            X_train.append(np.array(X_train_seq))
+            Y_train.append(np.array(y_train))
         Y_train = np.array(Y_train)
 
         X_train = np.array(X_train)
@@ -109,34 +111,29 @@ def cross_val(model,
         #model.fit(model.preproc(X_train),Y_train)
         #print("the model is fitting",{i},"eme iteration")
 
-
         #print("Validation in process")
 
-        test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy().reset_index(drop=True)
+        test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
+        ).reset_index(drop=True)
         #print("test fold shape is ",test_fold_df.shape)
         #print(test_fold_df)
 
-        a,b,c=sequence_indexes(df=test_fold_df)
-
+        a, b, c = sequence_indexes(df=test_fold_df)
         Y_test = []
         X_test = []
         for j in range(len(a)):
             X_test_seq = test_fold_df.iloc[a[j]:b[j]]
-            y_test = test_fold_df.iloc[c[j],-1]
+            y_test = test_fold_df.iloc[c[j], -1]
             #print("y_test shape is",y_test.shape)
-            X_test.append(X_test_seq)
-            Y_test.append(y_test)
-
-            #print(X_train_seq.shape)
-
+            X_test.append(np.array(X_test_seq))
+            Y_test.append(np.array(y_test))
         Y_test = np.array(Y_test)
         #print("Y_test shape is ",Y_test.shape)
         X_test = np.array(X_test)
         #print("X_test",X_test.shape)
 
-
         #CREATE A BATCH ARRAY
-        Y_pred = model.run(X_test,X_train,Y_train)
+        Y_pred = model.run(X_test, X_train, Y_train)
         #print(X_test)
         #print(Y_pred)
 
@@ -144,8 +141,7 @@ def cross_val(model,
         # metrics(Y_pred,Y_true)
         reality.append(Y_test)
         prediction.append(Y_pred)
-        score.append(mae(Y_test,Y_pred))
-
+        score.append(mae(Y_test, Y_pred))
 
     return score, np.mean(score)
 
@@ -215,3 +211,76 @@ if __name__ == "__main__":
 
 
 #     return reality,prediction
+
+
+
+
+def cross_val_charles(model, df, hyperparams=None) :
+    df = df.drop(columns=["date"])
+    prediction = []
+    reality = []
+    score = []
+    start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
+        df=df)
+    for i in range(len(start_fold_train)):
+        #reinitialise the model between two fold
+        model.set_model()
+        train_fold_df = df.loc[start_fold_train[i]:end_fold_train[i]].copy(
+        ).reset_index(drop=True)
+        #print(train_fold_df)
+        #print("train fold shape is ",train_fold_df.shape)
+        #print(train_fold_df.columns)
+
+        sequence_start, sequence_stop, target_idx = sequence_indexes(
+            df=train_fold_df)
+        X_train = []
+        Y_train = []
+        #print(len(train_fold_df.shape))
+        for j in range(len(sequence_start)):
+            X_train_seq = np.array(
+                train_fold_df.iloc[sequence_start[j]:sequence_stop[j]])
+            y_train = train_fold_df.iloc[target_idx[j], -1]
+            X_train.append(X_train_seq)
+            Y_train.append(y_train)
+        Y_train = np.array(Y_train)
+
+        X_train = np.array(X_train)
+        #print("X_train shape is",X_train.shape)
+        #print("Y_train shape is ",Y_train.shape)
+        #print(Y_train)
+        #model.fit(model.preproc(X_train),Y_train)
+        #print("the model is fitting",{i},"eme iteration")
+
+        #print("Validation in process")
+
+        test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
+        ).reset_index(drop=True)
+        #print("test fold shape is ",test_fold_df.shape)
+        #print(test_fold_df)
+
+        a, b, c = sequence_indexes(df=test_fold_df)
+        Y_test = []
+        X_test = []
+        for j in range(len(a)):
+            X_test_seq = test_fold_df.iloc[a[j]:b[j]]
+            y_test = test_fold_df.iloc[c[j], -1]
+            #print("y_test shape is",y_test.shape)
+            X_test.append(np.array(X_test_seq))
+            Y_test.append(np.array(y_test))
+        Y_test = np.array(Y_test)
+        #print("Y_test shape is ",Y_test.shape)
+        X_test = np.array(X_test)
+        #print("X_test",X_test.shape)
+
+        #CREATE A BATCH ARRAY
+        Y_pred = model.run(X_test, X_train, Y_train)
+        #print(X_test)
+        #print(Y_pred)
+
+        #FROM METRICS.PY IMPORT MAE
+        # metrics(Y_pred,Y_true)
+        reality.append(Y_test)
+        prediction.append(Y_pred)
+        score.append(mae(Y_test, Y_pred))
+
+    return score, np.mean(score)
