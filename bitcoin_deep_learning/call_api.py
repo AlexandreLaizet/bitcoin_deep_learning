@@ -4,6 +4,7 @@ import numpy as np
 import time
 import datetime
 from datetime import date, timedelta
+from sklearn.preprocessing import MinMaxScaler
 #from dotenv import load_dotenv, find_dotenv
 from dotenv import load_dotenv
 load_dotenv()
@@ -180,7 +181,6 @@ class ApiCall():
             df = self.data_to_csv(name)
         print("Data is up to date and has been loaded from local")
         return df
-
 
 if __name__=="__main__":
     df = ApiCall().get_raw_glassnode_data()
