@@ -4,6 +4,8 @@ from numpy import mean, abs
 import numpy as np
 import pandas as pd
 
+from bitcoin_deep_learning.call_api import ApiCall
+
 def mean_absolute_scaled_error(y_true, y_pred, y_baseline):
     e_t = y_true - y_pred
     scale = mean_absolute_error(y_baseline[1:], y_baseline[:-1])
@@ -98,7 +100,7 @@ def play_hodl_strategy(y_true,
     # Return On Investment = btc_usd_balance / total invested
     # roi = (btc_usd_balance / total_investment) -1
 
-    assert btc_usd_balance == daily_portfolio_position[- investment_frequency]
+    # assert btc_usd_balance == daily_portfolio_position[- investment_frequency]
 
     return pd.Series(daily_portfolio_position)
 
@@ -256,7 +258,16 @@ def play_trader_strategy_2(y_true,
     #return pd.Series(daily_portfolio_position)
     return pd.Series(daily_portfolio_position)
 
-
+if __name__ == '__main__':
+    df = ApiCall().read_local()
+    y_true = df["[+]_[T]_Bitcoin_Price"].copy()
+    y_pred = y_true
+    print("Hodl strategy (1) ROI and (2) Sharpe Ratio:")
+    print(compute_roi(play_hodl_strategy(y_true, y_pred)))
+    print(compute_sharp_ratio(play_hodl_strategy(y_true, y_pred)))
+    print("Trader strategy (1) ROI and (2) Sharpe Ratio:")
+    print(compute_roi(play_trader_strategy_2(y_true, y_pred)))
+    print(compute_sharp_ratio(play_trader_strategy_2(y_true, y_pred)))
 
 #### NOTES ####
 
