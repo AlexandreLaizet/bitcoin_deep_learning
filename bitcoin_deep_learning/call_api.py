@@ -157,7 +157,7 @@ class ApiCall():
             df = self.get_clean_data()
         #TODO ASK A TA IF THIS WILL BROKE AS SOON AS WE PUSH IT TO GIT
         # loca path/ absolute ?
-        df.to_csv('../data_raw/'+name+'.csv',index=False)
+        df.to_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'),index=False)
         return df
 
     def read_local(self,name="BTC_df"):

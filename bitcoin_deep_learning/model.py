@@ -196,7 +196,10 @@ if __name__ == '__main__':
     #Call API
     from bitcoin_deep_learning.cross_val import cross_val
     from bitcoin_deep_learning.call_api import ApiCall
-    df = ApiCall().read_local()
+    #df = ApiCall().read_local()
+
+    df = ApiCall().get_clean_data()
+    ApiCall().data_to_csv(df)
 
     # Dummy model
     dummy_model = DummyModel()
