@@ -28,3 +28,4 @@ joblib
 memoized-property
 termcolor
 python-dotenv
+python-dotenv
