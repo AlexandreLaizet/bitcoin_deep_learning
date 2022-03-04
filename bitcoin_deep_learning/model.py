@@ -1,5 +1,5 @@
 from bitcoin_deep_learning.call_api import *
-from bitcoin_deep_learning.metrics import *
+#from bitcoin_deep_learning.metrics import *
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import MinMaxScaler
