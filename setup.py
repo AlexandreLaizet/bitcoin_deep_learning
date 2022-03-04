@@ -1,7 +1,13 @@
 from setuptools import find_packages
 from setuptools import setup
+import platform
 
-with open('requirements.txt') as f:
+if platform.machine() == 'arm64': # M1 machine
+    requirements_path = 'requirements_arm64.txt'
+else:
+    requirements_path = 'requirements.txt'
+
+with open(requirements_path) as f:
     content = f.readlines()
 requirements = [x.strip() for x in content if 'git+' not in x]
 
