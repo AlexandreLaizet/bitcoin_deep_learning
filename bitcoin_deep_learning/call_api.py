@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 API_KEY = os.getenv('API_KEY')
-from bitcoin_deep_learning.params import ROOT_DIR
+from bitcoin_deep_learning.params import ROOT_DIR,FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,HORIZON
+
 
 class ApiCall():
     def __init__(self,API_KEY=API_KEY):
@@ -117,6 +118,7 @@ class ApiCall():
             df_fear = pd.merge(row_df,df_fear.astype({"fear_greed_value":int}),how="outer").sort_values(by="date").astype({"fear_greed_value":int})
         return df_fear
 
+
     def get_raw_data(self,short=True):
         '''if short = True return 2018-01-02 as first date'''
         #TODO FEAR AND GREED IS Y_D_M merge not working !!!!!
@@ -125,6 +127,7 @@ class ApiCall():
         if not short :
             return pd.merge(df_api,df_fear_greed,how="left",right_on="date",left_on="date")
         return pd.merge(df_api,df_fear_greed,how="inner",right_on="date",left_on="date")
+
 
 
     def get_clean_data(self, raw_data_start_date = "2018/01/26", columns_to_drop = ["fear_greed_value_class"]):
@@ -171,19 +174,58 @@ class ApiCall():
         df.to_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'),index=False)
         return df
 
-    def read_local(self,name="BTC_df"):
+
+    def read_local(self,data="all",name="BTC_df"):
+        '''read data from local directory, make sure you have download the data at least once
+        by launching call_apy.py in root
+
+        args:
+        data = "train","test","val" or all the dataframe by default
+        name : change the name of your df
+        '''
 
         df = pd.read_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'))#('../data_raw/'+name+'.csv')
         # We verify if the local data is up to date
         if not  (pd.Timestamp(df["date"].iloc[-1]) ==
                             pd.Timestamp(date.today()- timedelta(days = 1))) :
             print("Downloading data..")
+
             df = self.data_to_csv(name)
+            self.save_train_val_test_split(df)
         print("Data is up to date and has been loaded from local")
+        if data == "train":
+            return pd.read_csv(os.path.join(ROOT_DIR, "data_raw", 'train_df.csv'))
+        if data == 'val':
+            return pd.read_csv(os.path.join(ROOT_DIR, "data_raw", 'val_df.csv'))
+        if data =='test':
+            return pd.read_csv(os.path.join(ROOT_DIR, "data_raw", 'test_df.csv'))
         return df
 
+
+    # We implement function to divide our original dataset and save it in local
+    ####################################################################################################################
+    #                                                                   #                      #                       #
+    #                                                                   #                      #                       #
+    #                       TRAIN_SET                                   #      VAL_SET         #      TEST_SET         #
+    #                                                                   #                      #                       #
+    #                                                                   #                      #                       #
+    #                                                                   #                      #                       #
+    ####################################################################################################################
+
+    def save_train_val_test_split(self,df):
+        train_df = df.iloc[:-180]
+        val_df = df.iloc[-(90+FOLD_TEST_SIZE+FOLD_TRAIN_SIZE+HORIZON):-90]
+        test_df = df.iloc[-(FOLD_TEST_SIZE+FOLD_TRAIN_SIZE+HORIZON):]
+        train_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'train_df.csv'),index=False)
+        val_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'val_df.csv'),index=False)
+        test_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'test_df.csv'),index=False)
+
+
+
+
 if __name__=="__main__":
-    df = ApiCall().get_raw_glassnode_data()
-    df = ApiCall().get_fear_and_greed()
-    print(len(df.columns))
-    assert len(df.columns)==32, "df should have 32 columns"
+    df = ApiCall().get_clean_data()
+    ApiCall.data_to_csv(df)
+    ApiCall().save_train_val_test_split(df)
+    #print(len(df.columns))
+    #assert len(df.columns)==32, "df should have 32 columns"
