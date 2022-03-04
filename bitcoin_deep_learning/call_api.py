@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 API_KEY = os.getenv('API_KEY')
-from params import ROOT_DIR
+from bitcoin_deep_learning.params import ROOT_DIR
 
 class ApiCall():
     def __init__(self,API_KEY=API_KEY):
@@ -102,9 +102,19 @@ class ApiCall():
                                             "value":"fear_greed_value",
                                             "value_classification":"fear_greed_value_class"})
 
-        #change the date to a datetime format
-        df["date"] = pd.to_datetime(df["date"])
-        return df
+        #change the date to a datetime format and sort in asc
+        df["date"] = pd.to_datetime(df["date"],format='%d-%m-%Y')
+        df_fear = df.sort_values(by="date")
+
+        # Check if there is missing date, and hardcode them since we now the
+        # alternative api is missing 3 days
+        if not len(pd.date_range(start = '2018-02-01', end = '2022-03-03' ).difference(df_fear.date)) == 0 :
+            row_df = pd.DataFrame(np.array([[int(24),"Extreme Fear",datetime.datetime(2018,4,14)],
+                                        [int(25),"Fear",datetime.datetime(2018,4,15)],
+                                        [int(26),"Fear",datetime.datetime(2018,4,16)]]),
+                                columns=['fear_greed_value', 'fear_greed_value_class', 'date']).astype({"fear_greed_value":int})
+            df_fear = pd.merge(row_df,df_fear.astype({"fear_greed_value":int}),how="outer").sort_values(by="date").astype({"fear_greed_value":int})
+        return df_fear
 
     def get_raw_data(self,short=True):
         '''if short = True return 2018-01-02 as first date'''
@@ -173,6 +183,7 @@ class ApiCall():
 
 
 if __name__=="__main__":
-    df = ApiCall().get_raw_data()
+    df = ApiCall().get_raw_glassnode_data()
+    df = ApiCall().get_fear_and_greed()
     print(len(df.columns))
     assert len(df.columns)==32, "df should have 32 columns"
