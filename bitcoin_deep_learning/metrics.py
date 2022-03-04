@@ -6,6 +6,7 @@ import pandas as pd
 
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
+from bitcoin_deep_learning.model import DummyModel
 from bitcoin_deep_learning.cross_val import cross_val
 from bitcoin_deep_learning.cross_val import cross_val_metrics
 
@@ -27,7 +28,10 @@ def compute_returns(play_strategy):
     return play_strategy.pct_change()[1:]
 
 def compute_sharpe_ratio(play_strategy):
-    return compute_roi(play_strategy) / compute_returns(play_strategy).std()
+    if compute_returns(play_strategy).sum() == 0:
+        return 0
+    else:
+        return compute_roi(play_strategy) / compute_returns(play_strategy).std()
 
 #### Define the play_strategies (hold and trader) ####
 
@@ -112,9 +116,9 @@ def play_trader_strategy_2(y_true,
                            total_investment = 400,
                            investment_frequency = 7,
                            buy_threshold = 0.05,
-                           sell_threshold = -0.10,
-                           buy_multiplicator = 3,
-                           sell_multiplicator = 3,
+                           sell_threshold = -0.05,
+                           buy_multiplicator = 5,
+                           sell_multiplicator = 5,
                            exchange_fee = 0.005,
                            tax_rate = 0.30):
     """
@@ -268,16 +272,20 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     roi_trader = []
     sharpe_hodl = []
     sharpe_trader = []
+    score_list = []
 
-    for reality, prediction, score in cross_val_metrics(model, df):
-        y_true, y_pred, score = reality, prediction, score
+    realities, predictions, scores = cross_val_metrics(model, df)
+
+    for reality, prediction in zip(realities,predictions):
+        y_true, y_pred = reality, prediction
 
         roi_hodl.append(compute_roi(play_hodl_strategy(y_true, y_pred)))
         roi_trader.append(compute_roi(play_trader_strategy_2(y_true, y_pred)))
         sharpe_hodl.append(compute_sharpe_ratio(play_hodl_strategy(y_true, y_pred)))
         sharpe_trader.append(compute_sharpe_ratio(play_trader_strategy_2(y_true, y_pred)))
+        #score_list.append(np.array(score).mean())
 
-    return np.array(roi_hodl).mean(), np.array(roi_trader).mean(), np.array(sharpe_hodl).mean(), np.array(sharpe_trader)
+    return np.array(roi_hodl).mean(), np.array(roi_trader).mean(), np.array(sharpe_hodl).mean(), np.array(sharpe_trader).mean()
 
 if __name__ == '__main__':
     # df = ApiCall().read_local()
@@ -292,15 +300,18 @@ if __name__ == '__main__':
     # print("Trader strategy (1) ROI and (2) Sharpe Ratio:")
     # print(compute_roi(play_trader_strategy_2(y_true, y_pred)))
     # print(compute_sharpe_ratio(play_trader_strategy_2(y_true, y_pred)))
+
     model = LinearRegressionBaselineModel()
-    df = ApiCall().read_local()
     roi_hold, roi_trader, sharpe_hodl, sharpe_trader = iterate_cross_val_results(
-        model = model,
-        df = df)
-    print("Hodler roi is: ", roi_hold)
-    print("Hodler sharpe ratio is: ", sharpe_hodl)
-    print("Trader roi is:  ", roi_trader)
-    print("Trader sharpe ratio is: ", sharpe_trader)
+        model = model)
+    print("Hodler roi: ", roi_hold)
+    print("Hodler sharpe ratio: ", sharpe_hodl)
+    print("Trader roi: ", roi_trader)
+    print("Trader sharpe ratio: ", sharpe_trader)
+
+    # df = ApiCall().read_local()
+    # model = LinearRegressionBaselineModel()
+    # print(len(cross_val_metrics(model=model,df=df)[1]))
 
 #### NOTES ####
 
