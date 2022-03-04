@@ -10,10 +10,6 @@ import numpy as np
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.call_api import ApiCall
 
-api = ApiCall()
-
-#df =  api.read_local()
-#print("dummy shape is ",df.shape)
 
 fold_train_size=12*30
 fold_test_size=3*30
@@ -21,29 +17,34 @@ horizon = 7
 gap = horizon-1
 sequence_lenght = 90
 fold_step = 30
+sample_step = 1
 
 def mae(y_pred,y_true):
     return np.mean(np.absolute(y_pred-y_true))
 
 
 def fold_indexes(df,
-                 df_shape=(1275,30),
                  fold_train_size=fold_train_size,
                  fold_test_size=fold_test_size,
                  horizon=horizon,
-                 sequence_lenght = 90,
-                 fold_step=30
+                 sequence_lenght = sequence_lenght,
+                 fold_step=fold_step
                  ):
     '''
-    Entry df or df shape or both ?
-    Return a tuple of 4 list of indices that will be used to
-    divide the (train) df in folds'''
+    Return a tuple of 4 list of indexes that will be used to
+    divide the (train) df in a train_fold and a test_fold'''
 
+    # We compute the amount of fold we can do
     total_fold_size = fold_train_size+(horizon-1)+fold_test_size
     max_fold_amount = (df.shape[0]-total_fold_size)//fold_step
-    a,b =  zip(*[((n*fold_step,n*fold_step+fold_train_size-1),
-            (n*fold_step+fold_train_size-sequence_lenght,n*fold_step+fold_test_size+fold_train_size+(horizon-1)))
+    # Creating a list of tuples with all the indexes (index of folds)
+    # zipping in two intermediary lists
+    a,b =  zip(*[((n*fold_step,
+                   n*fold_step+fold_train_size-1),
+            (n*fold_step+fold_train_size-sequence_lenght,
+             n*fold_step+fold_test_size+fold_train_size+(horizon-1)))
             for n in range(max_fold_amount+1)])
+    # zipping again to return a tupple of list
     start_fold_train, end_fold_train = zip(*list(a))
     start_fold_test, end_fold_test = zip(*list(b))
     return list(start_fold_train),list(end_fold_train),list(start_fold_test),list(end_fold_test)
@@ -51,28 +52,24 @@ def fold_indexes(df,
 
 #TODO sequence_indexe should take a df or a df.shape
 def sequence_indexes(df,
-                    shape=None,
-
-                     fold_train_size=fold_train_size,
-                     fold_test_size = fold_test_size,
                      sequence_lenght=sequence_lenght,
                      horizon=horizon,
-                     sample_step=1
+                     sample_step=sample_step
                      ):
-    '''Take a sub_df in entry and return a X_train indexes sequences and a y_true index '''
-    if shape==None:
-        shape = df.shape
-    total_fold_size = fold_train_size+(horizon-1)+fold_test_size
-    #print(shape)
+    '''Take a sub_df in entry and return a list of x_train_seq sequences and a
+     list of y_true indexes '''
+    shape = df.shape
+    # We compute the amount of sequences we can create
     max_seq =((shape[0]-sequence_lenght-horizon)//sample_step)
-    #assert fold_shape[0]>=total_fold_size,'''df is too smal compare to fold
-    #dimensions '''
-    seq_start_stop , index_pred =  zip(*[((n*sample_step,n*sample_step+sequence_lenght),n*sample_step+horizon+sequence_lenght)
-                 for n in range(max_seq)])
+    # Creating a list of tuples with all the indexes (index of folds)
+    # with and intermediate list seq_start_stop to have the correct format
+    seq_start_stop, index_pred = zip(*[((n * sample_step,
+                                         n * sample_step + sequence_lenght),
+                                        n * sample_step + horizon + sequence_lenght)
+                                       for n in range(max_seq)])
     seq_start, seq_stop = zip(*list(seq_start_stop))
     return list(seq_start), list(seq_stop), list(index_pred)
 
-#from charles import Model
 
 
 def cross_val(model, df, hyperparams=None):
