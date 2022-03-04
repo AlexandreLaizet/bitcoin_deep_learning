@@ -1,6 +1,5 @@
 from bitcoin_deep_learning.call_api import *
 from bitcoin_deep_learning.metrics import *
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import MinMaxScaler
@@ -17,7 +16,7 @@ import numpy as np
 
 # Dummy model will be a model using the last price value the predict the next price value
 
-class DummyModel(BaseEstimator, TransformerMixin):
+class DummyModel():
     """
     Return the last value on the price column as ypred
     """
@@ -25,32 +24,28 @@ class DummyModel(BaseEstimator, TransformerMixin):
     def __init__(self):
         self.set_model()
 
-    def preproc(self, X_train, y_train = None):
-        if not y_train :
-            return X_train
-        return X_train, y_train
+    def preproc(self, X_test, X_train):
+        return X_test, X_train
 
     def set_model(self):
+        self.model = self
         return self
 
-    def fit(self,X_train,y_train): #fit = train
-        self.preproc(X_train,y_train)
+    def fit(self,X_train,y_train):
         return self
 
     def predict(self, X_test):
-        X_test = X_test
         y_pred = X_test[:, -1, -1]
         return y_pred
 
     def run(self, X_test, X_train, y_train):
-        self.preproc(X_train, y_train)
-        self.set_model()
+        X_test, X_train = self.preproc(X_test, X_train)
         self.fit(X_train, y_train)
-        return self.predict(self.preproc(X_test))
+        return self.predict(X_test)
 
 # Baseline model will use a simple linear regression on the last value of the sequence
 
-class LinearRegressionBaselineModel(BaseEstimator, TransformerMixin):
+class LinearRegressionBaselineModel():
     """
     Predict y_pred based on a linear regression
     """
@@ -61,16 +56,14 @@ class LinearRegressionBaselineModel(BaseEstimator, TransformerMixin):
         self.max_iter = max_iter
         self.set_model()
 
-    def preproc(self, X_test, X_train, y_train = None):
+    def preproc(self, X_test, X_train):
         scaler = MinMaxScaler()
         X_train = X_train[:, -1, :]
         scaler.fit(X_train)
         X_train = scaler.transform(X_train)
         X_test = X_test[:, -1, :]
         X_test = scaler.transform(X_test)
-        if not y_train :
-            return X_test, X_train
-        return X_test, X_train, y_train
+        return X_test, X_train
 
     def set_model(self):
         self.model = ElasticNet(alpha =self.alpha,
@@ -103,9 +96,10 @@ class LinearRegressionBaselineModel(BaseEstimator, TransformerMixin):
 
 loss = 'mse'
 optimizer = 'rmsprop'
-metrics = ['mae, mape']
+#metrics = ['mae, mape']
+metrics = 'mae'
 
-class RnnDlModel(BaseEstimator, TransformerMixin):
+class RnnDlModel():
     """
     Return the last value on the price column
     """
@@ -117,18 +111,19 @@ class RnnDlModel(BaseEstimator, TransformerMixin):
         self.L1 = L1
         self.L2 = L2
         self.history = None
-        self.set_model()
+        self.model = None
 
     def preproc(self, X_test, X_train, y_train = None):
-        scaler = MinMaxScaler()
-        X_train = X_train
-        scaler.fit(X_train)
-        X_train = scaler.transform(X_train)
-        X_test = X_test
-        X_test = scaler.transform(X_test)
-        if not y_train:
-            return X_test, X_train
-        return X_test, X_train, y_train
+        #Compute X_train.min
+        #Compute X_train.max
+        mins = np.expand_dims(np.min(X_train, axis = (0,1)),(0,1))
+        maxes = np.expand_dims(np.max(X_train, axis= (0, 1)),(0,1))
+        X_train_scaled = (X_train - mins) / (maxes - mins)
+        #Scaler X_train
+        #Scaler X_test
+        X_test_scaled = (X_test - mins) / (maxes - mins)
+        print(np.max(X_train_scaled, axis = (0,1)))
+        return X_train_scaled, X_test_scaled
 
     def set_model(self):
         self.model = Sequential()
@@ -139,7 +134,7 @@ class RnnDlModel(BaseEstimator, TransformerMixin):
 
         self.model.add(GRU(units=128, return_sequences=True, activation='relu'))
         self.model.add(layers.Dropout(rate=0.2))
-        self.model.add(GRU(units=64, activation='relu'))
+        self.model.add(GRU(units=64, return_sequences=True, activation='relu'))
         self.model.add(layers.Dropout(rate=0.2))
         self.model.add(GRU(units=32, activation='relu'))
         self.model.add(layers.Dropout(rate=0.2))
@@ -155,16 +150,15 @@ class RnnDlModel(BaseEstimator, TransformerMixin):
                          activity_regularizer=reg_l1_l2))
         self.model.add(layers.Dropout(rate=0.2))
         self.model.add(layers.Dense(1, activation="linear"))
-
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
         return self
 
     def fit(self, X_train, y_train, verbose = 1):
-        model = self.set_model()
+        print(X_train.shape)
         es = EarlyStopping(patience=15, restore_best_weights=True)
-        self.history = model.fit(X_train, y_train,
+        self.history = self.model.fit(X_train, y_train,
                 batch_size = 32, # Too small --> no generalization. Too large --> compute slowly
-                epochs = 64,
+                epochs = 100,
                 validation_split = 0.3,
                 callbacks = [es],
                 workers = 6,
@@ -196,10 +190,9 @@ if __name__ == '__main__':
     #Call API
     from bitcoin_deep_learning.cross_val import cross_val
     from bitcoin_deep_learning.call_api import ApiCall
-    #df = ApiCall().read_local()
-
-    df = ApiCall().get_clean_data()
-    ApiCall().data_to_csv(df)
+    # df = ApiCall().get_clean_data()
+    # ApiCall().data_to_csv(df)
+    df = ApiCall().read_local()
 
     # Dummy model
     dummy_model = DummyModel()
@@ -210,8 +203,5 @@ if __name__ == '__main__':
     # print(cross_val(reg_lin_model, df))
 
     #RNN model
-    # dummy_model = DummyModel()
-    # print(dummy_model.run(X_test, X_train, y_train))
-    #print(reg_lin_model.run(X_test, X_train, y_train))
     # rnn_model = RnnDlModel()
     # print(cross_val(rnn_model, df))
