@@ -44,243 +44,504 @@ def compute_sharpe_ratio(play_strategy):
 
 #### Define the play_strategies (hold and trader) ####
 
-def play_hodl_strategy(y_true,
-                       y_pred,
-                       total_investment = 400,
-                       investment_frequency = 7,
-                       exchange_fee = 0.005):
+def play_hodler_strategy(y_true,
+                         y_pred,
+                         total_investment = 3000,
+                         investment_horizon = 7,
+                         exchange_fee = 0.005,
+                         tax_rate = 0.30):
     """
-    Takes y_true and y_pred pd.Series, total_investment, investment_frequency (in days), exchange_fee.
-    Returns a pd.Series of the daily portfolio positions).
+    Hodler strategy:
+    (1) Buy the same amount following a regular investment horizon without consideration of price prediction.
+    (2) Invest equal portions of total_investment at each investment horizon step (i.e., Dollar Cost Averaging - "DCA").
+    (3) Never sells ("diamond hands"). However, in order to calculate potential returns, a tax rate (in case of profit taking) will be applied on the last day of the hodler's portfolio.
     """
 
-    # Enter total USD amount to be invested over the period (i.e., budget)
-    # total_investment = 400
-
-    # Enter the investment horizon in days (e.g., 7 for a weekly investement strategy)
-    # investment_frequency = 7
-
-    # Enter the exchange fee applicable to each trade (e.g., 0.5% on Coinbase Pro)
-    # exchange_fee = 0.005
-
-    # Periodic investment amount (e.g., total investment / number of weeks)
-    investment_amount = total_investment / (len(y_true) / investment_frequency)
-
-    # List of daily percent change of y_true
-    y_true_daily_pct_change = pd.Series(y_true).pct_change()
-
-    # List of daily_portfolio position (usd + btc_usd)
+    # Lists
+    daily_usd_position = []
+    daily_btc_position = []
+    daily_btc_usd_position = []
     daily_portfolio_position = []
-
-    # List of the price percent change over the investment horizon (e.g., D7 price / D0 price)
-    y_true_percent_change = [(value / list(y_true)[index - investment_frequency])-1 for index, value in enumerate(list(y_true)) if index % investment_frequency == 0][1:]
-
-    # List of returns over the investment horizon (e.g., D7 price / D0 price)
-    investment_frequency_returns = []
-
-    # USD balance
-    usd_balance = total_investment
-
-    # Bitcoin balance in USD
-    btc_usd_balance = 0
-
-    # Counters for indexes during for-loop
-    counter = 0
-    counter_percent_change = 0
-
-    # Invest at each period of the investment horizon (e.g., weekly)
-    for value in y_true[::investment_frequency]:
-
-        usd_balance -= investment_amount
-
-        if btc_usd_balance > 0:
-            investment_frequency_returns.append(btc_usd_balance * y_true_percent_change[counter_percent_change])
-            btc_usd_balance += investment_amount + investment_frequency_returns[counter_percent_change] - (investment_amount * exchange_fee)
-            counter_percent_change += 1
-
-        else:
-            btc_usd_balance += investment_amount - (investment_amount * exchange_fee)
-
-        for days in range(investment_frequency):
-            if days == 0:
-                daily_portfolio_position.append(usd_balance + btc_usd_balance)
-            else:
-                daily_portfolio_position.append(usd_balance + (btc_usd_balance + (btc_usd_balance * list(y_true_daily_pct_change)[days])))
-
-
-        counter += 1
-
-        # print(btc_usd_balance)
-        #print(investment_frequency_returns)
-
-    # Return On Investment = btc_usd_balance / total invested
-    # roi = (btc_usd_balance / total_investment) -1
-
-    # assert btc_usd_balance == daily_portfolio_position[- investment_frequency]
-
-    return pd.Series(daily_portfolio_position)
-
-def play_trader_strategy_2(y_true,
-                           y_pred,
-                           total_investment = 400,
-                           investment_frequency = 7,
-                           buy_threshold = 0.05,
-                           sell_threshold = -0.05,
-                           buy_multiplicator = 5,
-                           sell_multiplicator = 5,
-                           exchange_fee = 0.005,
-                           tax_rate = 0.30):
-    """
-    Takes y_true and y_pred pd.Series, total_investment, investment_frequency (in days), investment_threshold, exchange_fee.
-    Returns a pd.Series of the daily portfolio positions).
-    """
-
-    # Enter total USD amount to be invested over the period (i.e., budget)
-    # total_investment = 400
-
-    # Enter the investment horizon in days (e.g., 7 for a weekly investement strategy)
-    # investment_frequency = 7
-
-    # Enter a buy threshold (i.e., buy if prediction is above/below a certain percentage)
-    # buy_threshold = 0.05
-
-    # Enter a sell threshold (i.e., sell if prediction is above/below a certain percentage)
-    # sell_threshold = -0.10
-
-    # Enter a buyer multiplicator (e.g., 2 times the price increase rate predicted: 2 * 15%)
-    # buy_multiplicator = 2
-
-    # Enter a seller multiplicator (e.g., 2 times the price decrease rate predicted: 2 * 15%)
-    # sell_multiplicator = 3
-
-    # Enter the exchange fee applicable to each trade (e.g., 0.5% on Coinbase Pro)
-    # exchange_fee = 0.005
-
-    # Enter the applicable tax rate (e.g., 30% for financial gains in France)
-    # tax_rate = 0.30
-
-    # Periodic investment amount (e.g., total investment / number of weeks)
-    investment_amount = total_investment / (len(y_true) / investment_frequency)
-
-    # List of daily percent change of y_true
-    y_true_daily_pct_change = pd.Series(y_true).pct_change()
-
-    # List of daily_portfolio position (usd + btc_usd)
-    daily_portfolio_position = []
-
-    # List of the price percent change over the investment horizon (e.g., D7 price / D0 price)
-    y_true_percent_change = [(value / list(y_true)[index - investment_frequency])-1 for index, value in enumerate(list(y_true)) if index % investment_frequency == 0][1:]
-
-    # List of returns over the investment horizon (e.g., D7 price / D0 price)
-    investment_frequency_returns = []
-
-    # USD balance
-    usd_balance = total_investment
-
-    # Bitcoin balance in USD
-    btc_usd_balance = 0
-
-    # Cost_basis list for tax calculation purposes
+    investments = []
     cost_basis = []
-
-    # Amount bought for cost_basis weighting
-    amount_bought = []
-
-    # Taxable basis (i.e., profits taken)
     taxable_basis = []
 
+    # Trackers
+    investment = total_investment / (len(list(y_true)) / investment_horizon)
+    usd_balance = total_investment
+    btc_balance = 0
+    btc_usd_balance = 0
     taxes = 0
-
-    # Counters for indexes during for-loop
     counter = 0
-    counter_percent_change = 0
 
-    # Invest at each period of the investment horizon (e.g., weekly)
-    for value in y_pred[::investment_frequency]:
+    # Loop
+    for value in list(y_true)[::investment_horizon]:
 
-        # Buy/sell only based on a prediction
-        if len(y_pred[::investment_frequency]) > counter + 1:
-            #print((list(y_pred)[::investment_frequency][counter + 1] / list(y_true)[::investment_frequency][counter]) - 1 < -investment_threshold)
+        if counter == 0:
+            usd_balance -= investment
+            btc_usd_balance += investment - (investment * exchange_fee)
+            btc_balance = btc_usd_balance / value
 
-            predicted_move_ratio = (list(y_pred)[::investment_frequency][counter + 1] / list(y_true)[::investment_frequency][counter]) - 1
+            # Tax-prep-start
+            investments.append(investment)
+            cost_basis.append(value)
+            # Tax-prep-end
 
-            #print(predicted_move_ratio)
+            ### print(f"price bought {value}")
+            ### print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
 
-            if predicted_move_ratio > buy_threshold:
-                if usd_balance <= 0:
-                    pass
-                else:
+        if counter > 0 and counter < len(list(y_true)[::investment_horizon]) - 1 and usd_balance > investment:
+            btc_usd_balance = btc_balance * value
+            usd_balance -= investment
+            btc_usd_balance += investment - (investment * exchange_fee)
+            btc_balance = btc_usd_balance / value
 
-                    ### Tax ###
-                    cost_basis.append(list(y_true)[::investment_frequency][counter])
-                    amount_bought.append(usd_balance * (predicted_move_ratio * buy_multiplicator))
-                    ### Tax ###
+            # Tax-prep-start
+            investments.append(investment)
+            cost_basis.append(value)
+            # Tax-prep-end
 
-                    btc_usd_balance += usd_balance * (predicted_move_ratio * buy_multiplicator) - ((usd_balance * (predicted_move_ratio * buy_multiplicator)) * exchange_fee)
-                    usd_balance -= usd_balance * (predicted_move_ratio * buy_multiplicator)
-                    # print(btc_usd_balance)
+            ### print(f"price bought {value}")
+            ### print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
 
+        if counter > 0 and counter == len(list(y_true)[::investment_horizon]) - 1:
+            btc_usd_balance = btc_balance * value
+            usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+            btc_usd_balance = 0
+            btc_balance = 0
 
-                # TODO (buy because price is predicted to go up)
+            # Tax-calc-start
+            wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+            taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+            investments.clear()
+            cost_basis.clear()
+            # Tax-calc-end
 
-            if predicted_move_ratio < sell_threshold:
-                if btc_usd_balance == 0:
-                    pass
+            ### print(f"price sold {value}")
 
-                else:
+        daily_usd_position.append(usd_balance)
+        daily_btc_position.append(btc_balance)
+        daily_btc_usd_position.append(btc_usd_balance)
+        daily_portfolio_position.append(usd_balance + btc_usd_balance)
 
-                    ### Tax ###
-                    amount_sold = btc_usd_balance * (- predicted_move_ratio * sell_multiplicator) - ((btc_usd_balance * (- predicted_move_ratio * sell_multiplicator)) * exchange_fee)
-                    wa_cost_basis = (np.array(amount_bought) * np.array(cost_basis)).sum() / np.array(amount_bought).sum()
-                    taxable_basis.append(amount_sold * ((list(y_true)[::investment_frequency][counter] / wa_cost_basis) - 1))
-
-                    for index in range(len(amount_bought)):
-                        amount_bought[index] -= amount_sold / len(amount_bought)
-
-                    ### Tax ###
-                    # print(amount_bought)
-
-                    usd_balance += btc_usd_balance * (- predicted_move_ratio * sell_multiplicator) - ((btc_usd_balance * (- predicted_move_ratio * sell_multiplicator)) * exchange_fee)
-                    btc_usd_balance -= btc_usd_balance * (- predicted_move_ratio * sell_multiplicator)
-                    #print(btc_usd_balance)
-                # TODO (buy because price is predicted to go down)
-
-
-        for days in range(investment_frequency):
-            if days == 0:
-                daily_portfolio_position.append(usd_balance + btc_usd_balance)
-            else:
-                daily_portfolio_position.append(usd_balance + (btc_usd_balance + (btc_usd_balance * list(y_true_daily_pct_change)[days])))
-            #print(btc_usd_balance)
         counter += 1
 
-        # print(btc_usd_balance)
-        # print(investment_frequency_returns)
+        ### print(counter)
 
-    # Return On Investment = btc_usd_balance / total invested
-    # roi = (btc_usd_balance / total_investment) -1
-
-
-    # Return On Investment after taxes on trades
-
+    # Tax-pay-start
     if np.array(taxable_basis).sum() > 0:
         taxes += np.array(taxable_basis).sum() * tax_rate
         daily_portfolio_position[-1] -= taxes
+    # Tax-pay-end
 
-    # roi_after_taxes_on_trades = ((btc_usd_balance + usd_balance - taxes) / total_investment) - 1
+    ### print(np.array(taxable_basis).sum() * tax_rate)
 
-    #assert btc_usd_balance == daily_portfolio_position[- investment_frequency]
+    return pd.Series(daily_portfolio_position)
 
-    #return pd.Series(daily_portfolio_position)
+def play_trader_strategy(y_true,
+                         y_pred,
+                         total_investment = 3000,
+                         investment_horizon = 7,
+                         buy_threshold = 0.05,
+                         sell_threshold = 0.00,
+                         exchange_fee = 0.005,
+                         tax_rate = 0.30):
+    """
+    Trader strategy:
+    (1) Assess daily if the predicted price will reach the buy_threshold or the sell_threshold over the investment_horizon.
+    (2) Invest total_investment if price is predicted to increase by at least the buy_threshold over the investment_horizon.
+    (3) After reaching the investment horizon, sells total_investment if price is predicted to decrease by at least the sell_threshold over the investment_horizon.
+    (4) Repeat process from (1).
+    """
+
+    # Lists
+    daily_usd_position = []
+    daily_btc_position = []
+    daily_btc_usd_position = []
+    daily_portfolio_position = []
+    investments = []
+    cost_basis = []
+    taxable_basis = []
+
+    # Trackers
+    usd_balance = total_investment
+    btc_balance = 0
+    btc_usd_balance = 0
+    investment = 0
+    reassessment_day = 0
+    taxes = 0
+    counter = 0
+
+    # Loop
+    for value in list(y_true):
+
+        if len(list(y_pred)) > counter + investment_horizon:
+
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+
+                if usd_balance > 0:
+
+                    investment = usd_balance - (usd_balance * exchange_fee)
+
+                    # Tax-prep-start
+                    investments.append(investment)
+                    cost_basis.append(value)
+                    # Tax-prep-end
+
+                    usd_balance = 0
+                    btc_usd_balance += investment
+                    btc_balance += btc_usd_balance / value
+                    reassessment_day = counter + investment_horizon
+
+                    ### print(f"price bought {value}")
+                    ### print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
+
+                else:
+                    btc_usd_balance = btc_balance * value
+
+            if usd_balance == 0:
+
+                if counter >= reassessment_day:
+
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+
+                        btc_usd_balance = btc_balance * value
+                        usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+                        btc_usd_balance = 0
+                        btc_balance = 0
+
+                        ### print(f"price sold {value}")
+
+                        # Tax-calc-start
+                        wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+                        taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+                        investments.clear()
+                        cost_basis.clear()
+                        # Tax-calc-end
+
+                    else:
+                        btc_usd_balance = btc_balance * value
+
+                else:
+                    btc_usd_balance = btc_balance * value
+
+        if len(list(y_pred)) <= counter + investment_horizon:
+
+            if counter >= reassessment_day:
+
+                if btc_usd_balance > 0:
+
+                    btc_usd_balance = btc_balance * value
+                    usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+                    btc_usd_balance = 0
+                    btc_balance = 0
+
+                    ### print(f"price sold {value}")
+
+                    # Tax-calc-start
+                    wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+                    taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+                    investments.clear()
+                    cost_basis.clear()
+                    # Tax-calc-end
+
+                else:
+                    btc_usd_balance = btc_balance * value
+            else:
+                btc_usd_balance = btc_balance * value
+
+        daily_usd_position.append(usd_balance)
+        daily_btc_position.append(btc_balance)
+        daily_btc_usd_position.append(btc_usd_balance)
+        daily_portfolio_position.append(usd_balance + btc_usd_balance)
+
+        counter += 1
+
+        ### print(counter)
+
+    # Tax-pay-start
+    if np.array(taxable_basis).sum() > 0:
+        taxes += np.array(taxable_basis).sum() * tax_rate
+        daily_portfolio_position[-1] -= taxes
+    # Tax-pay-end
+
+    ### print(np.array(taxable_basis).sum() * tax_rate)
+
+    return pd.Series(daily_portfolio_position)
+
+def play_whale_strategy(y_true,
+                        y_pred,
+                        total_investment = 3000,
+                        investment_horizon = 7,
+                        buy_threshold = 0.15,
+                        sell_threshold = 0.00,
+                        exchange_fee = 0.005,
+                        tax_rate = 0.30):
+    """
+    Whale strategy:
+    (1) Assess daily if the predicted price will reach the buy_threshold or the sell_threshold over the investment_horizon.
+    (2) Invest total_investment if price is predicted to increase by at least the buy_threshold over the investment_horizon.
+    (3) After reaching the investment horizon, sells total_investment if price is predicted to decrease by at least the sell_threshold over the investment_horizon.
+    (4) Repeat process from (1).
+    """
+
+    # Lists
+    daily_usd_position = []
+    daily_btc_position = []
+    daily_btc_usd_position = []
+    daily_portfolio_position = []
+    investments = []
+    cost_basis = []
+    taxable_basis = []
+
+    # Trackers
+    usd_balance = total_investment
+    btc_balance = 0
+    btc_usd_balance = 0
+    investment = 0
+    reassessment_day = 0
+    taxes = 0
+    counter = 0
+
+    # Loop
+    for value in list(y_true):
+
+        if len(list(y_pred)) > counter + investment_horizon:
+
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+
+                if usd_balance > 0:
+
+                    investment = usd_balance - (usd_balance * exchange_fee)
+
+                    # Tax-prep-start
+                    investments.append(investment)
+                    cost_basis.append(value)
+                    # Tax-prep-end
+
+                    usd_balance = 0
+                    btc_usd_balance += investment
+                    btc_balance += btc_usd_balance / value
+                    reassessment_day = counter + investment_horizon
+
+                    ### print(f"price bought {value}")
+                    ### print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
+
+                else:
+                    btc_usd_balance = btc_balance * value
+
+            if usd_balance == 0:
+
+                if counter >= reassessment_day:
+
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+
+                        btc_usd_balance = btc_balance * value
+                        usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+                        btc_usd_balance = 0
+                        btc_balance = 0
+
+                        ### print(f"price sold {value}")
+
+                        # Tax-calc-start
+                        wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+                        taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+                        investments.clear()
+                        cost_basis.clear()
+                        # Tax-calc-end
+
+                    else:
+                        btc_usd_balance = btc_balance * value
+
+                else:
+                    btc_usd_balance = btc_balance * value
+
+        if len(list(y_pred)) <= counter + investment_horizon:
+
+            if counter >= reassessment_day:
+
+                if btc_usd_balance > 0:
+
+                    btc_usd_balance = btc_balance * value
+                    usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+                    btc_usd_balance = 0
+                    btc_balance = 0
+
+                    ### print(f"price sold {value}")
+
+                    # Tax-calc-start
+                    wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+                    taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+                    investments.clear()
+                    cost_basis.clear()
+                    # Tax-calc-end
+
+                else:
+                    btc_usd_balance = btc_balance * value
+            else:
+                btc_usd_balance = btc_balance * value
+
+        daily_usd_position.append(usd_balance)
+        daily_btc_position.append(btc_balance)
+        daily_btc_usd_position.append(btc_usd_balance)
+        daily_portfolio_position.append(usd_balance + btc_usd_balance)
+
+        counter += 1
+
+        ### print(counter)
+
+    # Tax-pay-start
+    if np.array(taxable_basis).sum() > 0:
+        taxes += np.array(taxable_basis).sum() * tax_rate
+        daily_portfolio_position[-1] -= taxes
+    # Tax-pay-end
+
+    ### print(np.array(taxable_basis).sum() * tax_rate)
+
+    return pd.Series(daily_portfolio_position)
+
+def play_charles_strategy(y_true,
+                          y_pred,
+                          total_investment = 3000,
+                          investment_horizon = 7,
+                          buy_threshold = 0.20,
+                          sell_threshold = 0.00,
+                          exchange_fee = 0.000,
+                          tax_rate = 0.00):
+    """
+    Trader strategy:
+    (1) Assess daily if the predicted price will reach the buy_threshold or the sell_threshold over the investment_horizon.
+    (2) Invest total_investment if price is predicted to increase by at least the buy_threshold over the investment_horizon.
+    (3) After reaching the investment horizon, sells total_investment if price is predicted to decrease by at least the sell_threshold over the investment_horizon.
+    (4) Repeat process from (1).
+    """
+
+    # Lists
+    daily_usd_position = []
+    daily_btc_position = []
+    daily_btc_usd_position = []
+    daily_portfolio_position = []
+    investments = []
+    cost_basis = []
+    taxable_basis = []
+
+    # Trackers
+    usd_balance = total_investment
+    btc_balance = 0
+    btc_usd_balance = 0
+    investment = 0
+    reassessment_day = 0
+    taxes = 0
+    counter = 0
+
+    # Loop
+    for value in list(y_true):
+
+        if len(list(y_pred)) > counter + investment_horizon:
+
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+
+                if usd_balance > 0:
+
+                    investment = usd_balance - (usd_balance * exchange_fee)
+
+                    # Tax-prep-start
+                    investments.append(investment)
+                    cost_basis.append(value)
+                    # Tax-prep-end
+
+                    usd_balance = 0
+                    btc_usd_balance += investment
+                    btc_balance += btc_usd_balance / value
+                    reassessment_day = counter + investment_horizon
+
+                    ### print(f"price bought {value}")
+                    ### print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
+
+                else:
+                    btc_usd_balance = btc_balance * value
+
+            if usd_balance == 0:
+
+                if counter >= reassessment_day:
+
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+
+                        btc_usd_balance = btc_balance * value
+                        usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+                        btc_usd_balance = 0
+                        btc_balance = 0
+
+                        ### print(f"price sold {value}")
+
+                        # Tax-calc-start
+                        wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+                        taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+                        investments.clear()
+                        cost_basis.clear()
+                        # Tax-calc-end
+
+                    else:
+                        btc_usd_balance = btc_balance * value
+
+                else:
+                    btc_usd_balance = btc_balance * value
+
+        if len(list(y_pred)) <= counter + investment_horizon:
+
+            if counter >= reassessment_day:
+
+                if btc_usd_balance > 0:
+
+                    btc_usd_balance = btc_balance * value
+                    usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
+                    btc_usd_balance = 0
+                    btc_balance = 0
+
+                    ### print(f"price sold {value}")
+
+                    # Tax-calc-start
+                    wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
+                    taxable_basis.append(usd_balance * ((value / wa_cost_basis) - 1))
+                    investments.clear()
+                    cost_basis.clear()
+                    # Tax-calc-end
+
+                else:
+                    btc_usd_balance = btc_balance * value
+            else:
+                btc_usd_balance = btc_balance * value
+
+        daily_usd_position.append(usd_balance)
+        daily_btc_position.append(btc_balance)
+        daily_btc_usd_position.append(btc_usd_balance)
+        daily_portfolio_position.append(usd_balance + btc_usd_balance)
+
+        counter += 1
+
+        ### print(counter)
+
+    # Tax-pay-start
+    if np.array(taxable_basis).sum() > 0:
+        taxes += np.array(taxable_basis).sum() * tax_rate
+        daily_portfolio_position[-1] -= taxes
+    # Tax-pay-end
+
+    ### print(np.array(taxable_basis).sum() * tax_rate)
+
     return pd.Series(daily_portfolio_position)
 
 def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
                               df = ApiCall().read_local()):
 
-    roi_hodl = []
+    roi_hodler = []
     roi_trader = []
-    sharpe_hodl = []
+    roi_whale = []
+    roi_charles = []
+    sharpe_hodler = []
     sharpe_trader = []
+    sharpe_whale = []
+    sharpe_charles = []
     score_list = []
 
     # WE CAN'T IMPORT cross_val in this files (circular import)
@@ -289,13 +550,17 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     for reality, prediction in zip(realities,predictions):
         y_true, y_pred = reality, prediction
 
-        roi_hodl.append(compute_roi(play_hodl_strategy(y_true, y_pred)))
-        roi_trader.append(compute_roi(play_trader_strategy_2(y_true, y_pred)))
-        sharpe_hodl.append(compute_sharpe_ratio(play_hodl_strategy(y_true, y_pred)))
-        sharpe_trader.append(compute_sharpe_ratio(play_trader_strategy_2(y_true, y_pred)))
+        roi_hodler.append(compute_roi(play_hodler_strategy(y_true, y_pred)))
+        roi_trader.append(compute_roi(play_trader_strategy(y_true, y_pred)))
+        roi_whale.append(compute_roi(play_whale_strategy(y_true, y_pred)))
+        roi_charles.append(compute_roi(play_charles_strategy(y_true, y_pred)))
+        sharpe_hodler.append(compute_sharpe_ratio(play_hodler_strategy(y_true, y_pred)))
+        sharpe_trader.append(compute_sharpe_ratio(play_trader_strategy(y_true, y_pred)))
+        sharpe_whale.append(compute_sharpe_ratio(play_whale_strategy(y_true, y_pred)))
+        sharpe_charles.append(compute_sharpe_ratio(play_charles_strategy(y_true, y_pred)))
         #score_list.append(np.array(score).mean())
 
-    return np.array(roi_hodl).mean(), np.array(roi_trader).mean(), np.array(sharpe_hodl).mean(), np.array(sharpe_trader).mean()
+    return np.array(roi_hodler).mean(), np.array(roi_trader).mean(), np.array(roi_whale).mean(), np.array(roi_charles).mean(), np.array(sharpe_hodler).mean(), np.array(sharpe_trader).mean(), np.array(sharpe_whale).mean(), np.array(sharpe_charles).mean()
 
 if __name__ == '__main__':
     # df = ApiCall().read_local()
@@ -312,12 +577,19 @@ if __name__ == '__main__':
     # print(compute_sharpe_ratio(play_trader_strategy_2(y_true, y_pred)))
 
     model = LinearRegressionBaselineModel()
-    roi_hold, roi_trader, sharpe_hodl, sharpe_trader = iterate_cross_val_results(
-        model = model)
-    print("Hodler roi: ", roi_hold)
-    print("Hodler sharpe ratio: ", sharpe_hodl)
+    roi_hodler, roi_trader, roi_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_charles = iterate_cross_val_results(model = model)
+    print("---")
+    print("Hodler roi: ", roi_hodler)
+    print("Hodler sharpe ratio: ", sharpe_hodler)
+    print("---")
     print("Trader roi: ", roi_trader)
     print("Trader sharpe ratio: ", sharpe_trader)
+    print("---")
+    print("Whale roi: ", roi_whale)
+    print("Whale sharpe ratio: ", sharpe_whale)
+    print("---")
+    print("Charles roi: ", roi_charles)
+    print("Charles sharpe ratio: ", sharpe_charles)
 
     # df = ApiCall().read_local()
     # model = LinearRegressionBaselineModel()
