@@ -23,6 +23,7 @@ class DummyModel():
 
     def __init__(self):
         self.set_model()
+        self.name = 'Dummy'
 
     def preproc(self, X_test, X_train):
         return X_test, X_train
@@ -50,10 +51,12 @@ class LinearRegressionBaselineModel():
     Predict y_pred based on a linear regression
     """
 
-    def __init__(self, alpha = 1, l1_ratio = 0.5, max_iter = 1000):
+    def __init__(self, alpha = 1, l1_ratio = 0.5):
+        self.name = "LinearReg"
         self.alpha = alpha
         self.l1_ratio = l1_ratio
-        self.max_iter = max_iter
+        self.max_iter = 10_000
+        self.hyperparams = {"alpha":alpha,"l1_ratio":l1_ratio}
         self.set_model()
 
     def preproc(self, X_test, X_train):
@@ -104,14 +107,21 @@ class RnnDlModel():
     Return the last value on the price column
     """
 
-    def __init__(self, L1 = 0.01, L2 = 0.01, loss = loss, optimizer = optimizer, metrics = metrics):
+    def __init__(self, L1 = 0.01, L2 = 0.01,
+                 loss = loss, optimizer = optimizer, metrics = metrics,
+                 epochs=100, patience=20):
+        self.name = "RNN"
         self.loss = loss
         self.optimizer = optimizer
         self.metrics = metrics
         self.L1 = L1
         self.L2 = L2
+        self.epochs = epochs
+        self.patience = patience
         self.history = None
         self.model = None
+        self.hyperparams = {"L1":self.L1,"L2":self.L2,
+                            "epochs":self.epochs,"patience":self.patience}
 
     def preproc(self, X_test, X_train, y_train = None):
         #Compute X_train.min
@@ -122,7 +132,7 @@ class RnnDlModel():
         #Scaler X_train
         #Scaler X_test
         X_test_scaled = (X_test - mins) / (maxes - mins)
-        print(np.max(X_train_scaled, axis = (0,1)))
+        #print(np.max(X_train_scaled, axis = (0,1)))#
         return X_train_scaled, X_test_scaled
 
     def set_model(self):
@@ -153,13 +163,15 @@ class RnnDlModel():
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
         return self
 
-    def fit(self, X_train, y_train, verbose = 1):
-        print(X_train.shape)
-        es = EarlyStopping(patience=15, restore_best_weights=True)
+    def fit(self, X_train, y_train, verbose = 0):
+        #print(X_train.shape)
+        es = EarlyStopping(patience=self.patience, restore_best_weights=True)
         self.history = self.model.fit(X_train, y_train,
-                batch_size = 32, # Too small --> no generalization. Too large --> compute slowly
-                epochs = 100,
-                validation_split = 0.3,
+                batch_size = 32, # Too small --> no generalization.
+#                                  Too large --> compute slowly
+                epochs =self.epochs,
+                validation_split = 0.2,
+                #validation_data = (X_test,Y_test),
                 callbacks = [es],
                 workers = 6,
                 use_multiprocessing = True,
