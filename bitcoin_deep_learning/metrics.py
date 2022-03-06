@@ -7,8 +7,16 @@ import pandas as pd
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.model import DummyModel
-from bitcoin_deep_learning.cross_val import cross_val
-from bitcoin_deep_learning.cross_val import cross_val_metrics
+#from bitcoin_deep_learning.cross_val import cross_val
+#from bitcoin_deep_learning.cross_val import cross_val_metrics
+
+class Mean_absolute_percentage_error():
+    def __init__(self):
+        self.name = "MAPE"
+
+    def compute(self,y_true,y_pred):
+        return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
 
 def mean_absolute_scaled_error(y_true, y_pred, y_baseline):
     e_t = y_true - y_pred
@@ -16,7 +24,8 @@ def mean_absolute_scaled_error(y_true, y_pred, y_baseline):
     return mean(abs(e_t / scale))
 
 def mean_absolute_percentage_error(y_true, y_pred):
-    y_true, y_pred = check_array(y_true, y_pred)
+    # Alex, WHAT DOES CHECK ARRAY DO ? IS IT NECESSARY ?
+    #y_true, y_pred = check_array(y_true, y_pred)
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 #### Compute ROI, Returns, Sharp Ratio, based on the selected play_strategy ####
@@ -673,6 +682,7 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     sharpe_charles = []
     score_list = []
 
+    # WE CAN'T IMPORT cross_val in this files (circular import)
     realities, predictions, scores = cross_val_metrics(model, df)
 
     for reality, prediction in zip(realities,predictions):

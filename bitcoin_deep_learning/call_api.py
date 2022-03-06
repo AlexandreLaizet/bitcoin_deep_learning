@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 API_KEY = os.getenv('API_KEY')
-from bitcoin_deep_learning.params import ROOT_DIR,FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,HORIZON
+from bitcoin_deep_learning.params import (ROOT_DIR,FOLD_TRAIN_SIZE,
+                                          FOLD_TEST_SIZE,HORIZON)
 
 
 class ApiCall():
@@ -40,7 +41,7 @@ class ApiCall():
             '[$]_[BSB]_Net_Unrealized_Profit/Loss_(NUPL)':"https://api.glassnode.com/v1/metrics/indicators/net_realized_profit_loss",
             '[$]_[BSB]_Realized_Price':"https://api.glassnode.com/v1/metrics/market/price_realized_usd",
             '[%]_[BSB]_Price_Drawdown_from_ATH':"https://api.glassnode.com/v1/metrics/market/price_drawdown_relative",
-            # This api answer has a different shape than the others :
+            # DONE : This api answer has a different shape than the others :
             #'[//]_[AV]_Stock-to-Flow_Ratio':"https://api.glassnode.com/v1/metrics/indicators/stock_to_flow_ratio",
             '[//]_[AV]_Market_Value_to_Realized_Value_Ratio_(MVRV)':"https://api.glassnode.com/v1/metrics/market/mvrv",
             '[//]_[AV]_Puell_Multiple':"https://api.glassnode.com/v1/metrics/indicators/puell_multiple",
@@ -210,7 +211,7 @@ class ApiCall():
     #                                                                   #                      #                       #
     #                                                                   #                      #                       #
     #                                                                   #                      #                       #
-    ####################################################################################################################
+    ###################################################################################################################
 
     def save_train_val_test_split(self,df):
         train_df = df.iloc[:-180]
