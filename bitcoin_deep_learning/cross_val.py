@@ -144,6 +144,7 @@ def cross_val(model, df,
 
         #TODO SHUFFLING THE X,y
         Y_pred = model.run(X_test,X_train, Y_train)
+        print(model.model.coef_)
 
         # Keeping these lines in case we want to use Y_test, Y_pred in the futur
         reality.append(Y_test)
