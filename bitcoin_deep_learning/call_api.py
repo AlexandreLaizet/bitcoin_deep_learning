@@ -169,7 +169,7 @@ class ApiCall():
 
         return df_clean.reindex(columns=(['date'] +
                                 list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price']).columns)
-                                + ["[+]_[T]_Bitcoin_Price"]))
+                                + ["[+]_[T]_Bitcoin_Price"
                                     ,f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]))
 
 
