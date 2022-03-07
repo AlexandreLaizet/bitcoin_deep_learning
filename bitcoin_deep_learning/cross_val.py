@@ -153,37 +153,98 @@ def cross_val(model, df,
         print(f"{model.name} has been cross-validated")
     return reality, prediction
 
-
-def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
-    '''Compute and process a complete cross validation of a given model,
-    taking personalised metrics into account
-    return Y_true, Y_pred, model_loss
-    '''
+def get_cross_XY(data="train"):
+    df = ApiCall().read_local(data='train')
     df = df.drop(columns=["date"])
     # Initializing the variable to return
-    prediction, reality, score = [], [], []
+    X_train_list, Y_train_list, X_test_list,Y_test_list = [], [], [],[]
     # Setting the indexes to cut the df into folds
     start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
-        df=df)
+        df=df,verbose=verbose)
     # Starting the iteration on folds
+    print(len(start_fold_test))
     for i in range(len(start_fold_train)):
         # reinitialise the model between two folds to reset training
-        model.set_model()
-        # instantiating train fold
-        train_fold_df = df.loc[start_fold_train[i]:end_fold_train[i]].copy(
-        ).reset_index(drop=True)
+        train_fold_df = df.loc[start_fold_train[i]:
+                                 end_fold_train[i]].copy().reset_index(drop=True)
         # Setting the indexes to cut the train_fold in regular sequences and targets
         sequence_starts, sequence_stops, target_idx = sequence_indexes(
-            df=train_fold_df)
+            df=train_fold_df,verbose=verbose)
         # Initializing the X_train, Y_train
         X_train, Y_train = [], []
         # Starting the iteration on the sequences to create X,Y_train
         for j in range(len(sequence_starts)):
 
             X_train_seq = np.array(
-                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j],:-1])
+                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j]])
             y_train = train_fold_df.iloc[target_idx[j], -1]
-            # Converting the little df to np array
+            #Converting the little df to np array
+            X_train.append(np.array(X_train_seq))
+            Y_train.append(np.array(y_train))
+        # Converting the list of array to an array>
+        Y_train = np.array(Y_train)
+        X_train = np.array(X_train)
+
+        X_train_list.append(X_train)
+        Y_train_list.append(Y_train)
+
+    #Same process as ahead but on the test_fold
+        test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
+        ).reset_index(drop=True)
+        sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
+        Y_test,X_test = [],[]
+        for j in range(len(sequence_starts)):
+            X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j]]
+            y_test = test_fold_df.iloc[target_idx[j], -1]
+            X_test.append(np.array(X_test_seq))
+            Y_test.append(np.array(y_test))
+        Y_test = np.array(Y_test)
+        X_test = np.array(X_test)
+
+        Y_test_list.append(Y_test)
+        X_test_list.append(X_test)
+
+    return (X_train_list, Y_train_list, X_test_list,Y_test_list)
+
+def one_fold_cross_val(model, df,
+              verbose:int=0,
+              saving:bool=False,
+              metrics=[],
+              trader_metrics=[],
+              hyperparams=None):
+    '''Compute and process a complete cross validation of a given model,
+    taking personalised metrics into account
+    params :
+    verbose range from 0 to 10 and allow to print a few informations during the
+        process
+    return reality, prediction '''
+    df = df.drop(columns=["date"])
+    # Initializing the variable to return
+    prediction, reality, score = [], [], []
+    # Setting the indexes to cut the df into folds
+    start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
+        df=df,verbose=verbose)
+    # Starting the iteration on folds
+    for i in tqdm(range(len(start_fold_train))):
+        # reinitialise the model between two folds to reset training
+        model.set_model()
+        # instantiating train fold
+        if verbose >= 10 :
+            print("Creating sequences in the train_fold")
+        train_fold_df = df.loc[start_fold_train[i]:
+                                 end_fold_train[i]].copy().reset_index(drop=True)
+        # Setting the indexes to cut the train_fold in regular sequences and targets
+        sequence_starts, sequence_stops, target_idx = sequence_indexes(
+            df=train_fold_df,verbose=verbose)
+        # Initializing the X_train, Y_train
+        X_train, Y_train = [], []
+        # Starting the iteration on the sequences to create X,Y_train
+        for j in range(len(sequence_starts)):
+
+            X_train_seq = np.array(
+                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j]])
+            y_train = train_fold_df.iloc[target_idx[j], -1]
+            #Converting the little df to np array
             X_train.append(np.array(X_train_seq))
             Y_train.append(np.array(y_train))
         # Converting the list of array to an array
@@ -193,26 +254,28 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
         #Same process as ahead but on the test_fold
         test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
         ).reset_index(drop=True)
-        sequence_starts, sequence_stops, target_idx = sequence_indexes(
-            df=test_fold_df)
-        Y_test, X_test = [], []
+        sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
+        Y_test,X_test = [],[]
         for j in range(len(sequence_starts)):
-            X_test_seq = test_fold_df.iloc[
-                sequence_starts[j]:sequence_stops[j],:-1]
+            X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j]]
             y_test = test_fold_df.iloc[target_idx[j], -1]
             X_test.append(np.array(X_test_seq))
             Y_test.append(np.array(y_test))
         Y_test = np.array(Y_test)
         X_test = np.array(X_test)
+        breakpoint()
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
-        print(X_train)
-        Y_pred = model.run(X_test, X_train, Y_train)
 
+        #TODO SHUFFLING THE X,y
+        Y_pred = model.run(X_test,X_train, Y_train)
+
+        # Keeping these lines in case we want to use Y_test, Y_pred in the futur
         reality.append(Y_test)
         prediction.append(Y_pred)
-        score.append(mean_absolute_error(Y_test, Y_pred))
 
-    return reality,prediction,score
+    if verbose :
+        print(f"{model.name} has been cross-validated")
+    return reality, prediction
 
 if __name__ == "__main__":
     print("1")
