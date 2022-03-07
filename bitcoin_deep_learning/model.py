@@ -24,7 +24,7 @@ class DummyModel():
     def __init__(self):
         self.set_model()
         self.name = 'Dummy'
-        self.hyperparams = "Nope"
+        self.hyperparams = None
 
     def preproc(self, X_test, X_train):
         return X_test, X_train
