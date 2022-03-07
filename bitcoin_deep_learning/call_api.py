@@ -174,12 +174,9 @@ class ApiCall():
 
 
 
-    #TODO implement a way to stock a df_train, df_test, df_val
     def data_to_csv(self, df=False,name="BTC_df", short=True):
         if not type(df)== pd.core.frame.DataFrame :
             df = self.get_clean_data()
-        #TODO ASK A TA IF THIS WILL BROKE AS SOON AS WE PUSH IT TO GIT
-        # loca path/ absolute ?
         df.to_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'),index=False)
         return df
 
