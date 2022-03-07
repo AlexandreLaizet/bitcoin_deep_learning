@@ -6,5 +6,3 @@ data_raw/*
 *.csv
 **/__pycache__/
 .env
-*.ipynb
-.env
