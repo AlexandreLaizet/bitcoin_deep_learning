@@ -4,7 +4,7 @@ import numpy as np
 import time
 import datetime
 from datetime import date, timedelta
-from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
 #from dotenv import load_dotenv, find_dotenv
 from dotenv import load_dotenv
 load_dotenv()
@@ -51,6 +51,7 @@ class ApiCall():
         self.params = {'a': 'BTC', 'api_key': API_KEY}
 
     def get_raw_glassnode_data(self,verbose=0):
+        print("Downloading data ...")
         # We make a first api call for the stock to flow ratio, since it is
         # has a diffenrent response.
         res = requests.get("https://api.glassnode.com/v1/metrics/indicators/stock_to_flow_ratio",
@@ -64,7 +65,7 @@ class ApiCall():
         global_df = pd.merge(date_serie,ratio_serie,how="inner",on="t").rename(columns={"o":"[//]_[AV]_Stock-to-Flow_Ratio"})
 
         #Making API requests for most of the blockchains data
-        for name in list(self.name_and_url.keys()):
+        for name in tqdm(list(self.name_and_url.keys())):
             # make API request
             res = requests.get(self.name_and_url[name],
                 params=self.params)
@@ -75,7 +76,9 @@ class ApiCall():
             global_df = pd.merge(global_df,df,how="inner",on="t")
             time.sleep(1)
 
-
+        # Adding a diff column of the Bitcoin price on day t and the Bitcoin price on day (Horizon=7)
+        global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]= (global_df["[+]_[T]_Bitcoin_Price"].diff(HORIZON)
+                                                                   / global_df["[+]_[T]_Bitcoin_Price"])
         #Making Api request for the hash rate, high number answer need special treatment
         hash_params = {'a': 'BTC', 'api_key': API_KEY,"f":"CSV","timestamp_format":"unix"}
         res = requests.get("https://api.glassnode.com/v1/metrics/mining/hash_rate_mean",params=hash_params)
@@ -91,8 +94,8 @@ class ApiCall():
             lambda x:datetime.datetime.utcfromtimestamp(int(x)).strftime('%Y-%m-%d')))
 
         #Merging
-        pd.merge(data,global_df,how='inner',on="t").head()
-        return global_df.rename(columns={"t":"date"})
+
+        return pd.merge(data,global_df,how='inner',on="t").rename(columns={"t":"date"})
 
     def get_fear_and_greed(self):
         # make API request
@@ -162,8 +165,9 @@ class ApiCall():
                                           "[+]_[NH]_Number_of_Addresses_with_Balance_≥_1k"])
 
         return df_clean.reindex(columns=(['date'] +
-                                list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price']).columns)
-                                + ["[+]_[T]_Bitcoin_Price"]))
+                                list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price',
+                                                                     f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]).columns)
+                                + ["[+]_[T]_Bitcoin_Price",f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]))
 
 
     #TODO implement a way to stock a df_train, df_test, df_val
@@ -189,8 +193,6 @@ class ApiCall():
         # We verify if the local data is up to date
         if not  (pd.Timestamp(df["date"].iloc[-1]) ==
                             pd.Timestamp(date.today()- timedelta(days = 1))) :
-            print("Downloading data..")
-
             df = self.data_to_csv(name)
             self.save_train_val_test_split(df)
         print("Data is up to date and has been loaded from local")
@@ -230,3 +232,4 @@ if __name__=="__main__":
     ApiCall().save_train_val_test_split(df)
     #print(len(df.columns))
     #assert len(df.columns)==32, "df should have 32 columns"
+    print("ok")

@@ -205,6 +205,7 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
         X_test = np.array(X_test)
 
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
+        print(X_train)
         Y_pred = model.run(X_test, X_train, Y_train)
 
         reality.append(Y_test)
