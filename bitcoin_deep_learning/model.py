@@ -97,6 +97,7 @@ class LinearRegressionBaselineModel():
 
     def run(self, X_test, X_train, y_train):
         X_test, X_train = self.preproc(X_test, X_train)
+        breakpoint()
         self.fit(X_train, y_train)
         return self.predict(X_test)
 
@@ -209,18 +210,24 @@ if __name__ == '__main__':
     #Call API
     from bitcoin_deep_learning.cross_val import cross_val
     from bitcoin_deep_learning.call_api import ApiCall
+    from bitcoin_deep_learning.trainer import train
     # df = ApiCall().get_clean_data()
     # ApiCall().data_to_csv(df)
-    df = ApiCall().read_local()
+    # df = ApiCall().read_local()
 
     # Dummy model
     # dummy_model = DummyModel()
     # print(cross_val(dummy_model, df))
 
     # Regression model
-    reg_lin_model = LinearRegressionBaselineModel()
-    print(cross_val(reg_lin_model, df))
+    # reg_lin_model = LinearRegressionBaselineModel()
+    # print(cross_val(reg_lin_model, df))
 
     #RNN model
     # rnn_model = RnnDlModel()
     # print(cross_val(rnn_model, df))
+
+    df = ApiCall().read_local(data="train")
+    model = LinearRegressionBaselineModel()
+
+    train(model,df)

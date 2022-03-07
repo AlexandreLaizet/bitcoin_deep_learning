@@ -77,10 +77,10 @@ class ApiCall():
             time.sleep(1)
 
         # Adding a diff column of the Bitcoin price on day t and the Bitcoin price on day (Horizon=7)
-        global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]= (global_df["[+]_[T]_Bitcoin_Price"].diff(HORIZON)
-                                                                   / global_df["[+]_[T]_Bitcoin_Price"])
-        global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"] = (global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"].
-                                                                      dropna().reset_index(drop=True) )
+        # global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]= (global_df["[+]_[T]_Bitcoin_Price"].diff(HORIZON)
+        #                                                            / global_df["[+]_[T]_Bitcoin_Price"])
+        # global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"] = (global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"].
+        #                                                               dropna().reset_index(drop=True) )
 
         #Making Api request for the hash rate, high number answer need special treatment
         hash_params = {'a': 'BTC', 'api_key': API_KEY,"f":"CSV","timestamp_format":"unix"}
@@ -128,7 +128,7 @@ class ApiCall():
 
     def get_raw_data(self,short=True):
         '''if short = True return 2018-01-02 as first date'''
-        #TODO FEAR AND GREED IS Y_D_M merge not working !!!!!
+        #DONE FEAR AND GREED IS Y_D_M merge not working !!!!!
         df_api = self.get_raw_glassnode_data()
         df_fear_greed = self.get_fear_and_greed()
         if not short :
@@ -168,9 +168,9 @@ class ApiCall():
                                           "[+]_[NH]_Number_of_Addresses_with_Balance_≥_1k"])
 
         return df_clean.reindex(columns=(['date'] +
-                                list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price',
-                                                                     f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]).columns)
-                                + ["[+]_[T]_Bitcoin_Price",f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]))
+                                list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price']).columns)
+                                + ["[+]_[T]_Bitcoin_Price"]))
+                                   #,f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]))
 
 
 
@@ -195,11 +195,11 @@ class ApiCall():
 
         df = pd.read_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'))#('../data_raw/'+name+'.csv')
         # We verify if the local data is up to date
-        if not  (pd.Timestamp(df["date"].iloc[-1]) ==
-                            pd.Timestamp(date.today()- timedelta(days = 1))) :
-            df = self.data_to_csv(name)
-            self.save_train_val_test_split(df)
-        print("Data is up to date and has been loaded from local")
+        # if not  (pd.Timestamp(df["date"].iloc[-1]) ==
+        #                     pd.Timestamp(date.today()- timedelta(days = 1))) :
+        #     df = self.data_to_csv(name)
+        #     self.save_train_val_test_split(df)
+        #     print("Data is up to date and has been loaded from local")
         if data == "train":
             return pd.read_csv(os.path.join(ROOT_DIR, "data_raw", 'train_df.csv'))
         if data == 'val':
