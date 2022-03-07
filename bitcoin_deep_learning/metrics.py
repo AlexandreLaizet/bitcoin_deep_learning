@@ -7,8 +7,9 @@ import pandas as pd
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.model import DummyModel
-#from bitcoin_deep_learning.cross_val import cross_val
-#from bitcoin_deep_learning.cross_val import cross_val_metrics
+
+# from bitcoin_deep_learning.cross_val import cross_val
+# from bitcoin_deep_learning.cross_val import cross_val_metrics
 
 class Mean_absolute_percentage_error():
     def __init__(self):
@@ -42,7 +43,7 @@ def compute_sharpe_ratio(select_strategy):
     else:
         return compute_roi(select_strategy) / compute_returns(select_strategy).std()
 
-#### Define the play_strategies (hold and trader) ####
+#### Define the play_strategies ####
 
 def play_hodler_strategy(y_true,
                         y_pred,
@@ -112,7 +113,6 @@ def play_hodler_strategy(y_true,
             # Tax-calc-end
 
         if counter < int(len(list(y_true)) / investment_horizon):
-
             for day in range(investment_horizon):
                 daily_usd_position.append(usd_balance)
                 daily_btc_position.append(btc_balance)
