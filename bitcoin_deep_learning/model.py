@@ -169,16 +169,18 @@ class RnnDlModel():
     def fit(self, X_train, y_train, verbose = 0):
         #print(X_train.shape)
         es = EarlyStopping(patience=self.patience, restore_best_weights=True)
-        self.history = self.model.fit(X_train, y_train,
-                batch_size = 32, # Too small --> no generalization.
-        #                                  Too large --> compute slowly
-                epochs =self.epochs,
-                validation_split = 0.2,
-                #validation_data = (X_test,Y_test),
-                callbacks = [es],
-                workers = 6,
-                use_multiprocessing = True,
-                verbose = verbose)
+        self.history = self.model.fit(
+            X_train,
+            y_train,
+            batch_size=
+            32,  # Too small --> no generalization. Too large --> compute slowly
+            epochs=self.epochs,
+            validation_split=0.2,
+            #validation_data = (X_test,Y_test),
+            callbacks=[es],
+            workers=6,
+            use_multiprocessing=True,
+            verbose=verbose)
         return self
 
     def predict(self, X_test):
