@@ -26,7 +26,6 @@ def train(model,
           precision:int=5
           ):
     reality,prediction = cross_val(model,df)
-    model.
     fold_score = [round(metric.compute(Y_true,Y_pred),precision)
                             for Y_true,Y_pred in zip(reality,prediction)]
     score =round(np.mean(np.array(fold_score)),precision)

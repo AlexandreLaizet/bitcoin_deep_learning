@@ -20,6 +20,7 @@ class Mean_absolute_percentage_error():
 
 
 def mean_absolute_scaled_error(y_true, y_pred, y_baseline):
+    #
     e_t = y_true - y_pred
     scale = mean_absolute_error(y_baseline[1:], y_baseline[:-1])
     return mean(abs(e_t / scale))

@@ -85,7 +85,7 @@ def sequence_indexes(df:pd.DataFrame,
 
 def cross_val(model, df,
               verbose:int=0,
-              saving:boolean=False,
+              saving:bool=False,
               metrics=[],
               trader_metrics=[],
               hyperparams=None):
@@ -140,7 +140,7 @@ def cross_val(model, df,
             Y_test.append(np.array(y_test))
         Y_test = np.array(Y_test)
         X_test = np.array(X_test)
-
+        breakpoint()
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
         Y_pred = model.run(X_test,X_train, Y_train)
 
@@ -203,7 +203,6 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
             Y_test.append(np.array(y_test))
         Y_test = np.array(Y_test)
         X_test = np.array(X_test)
-
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
         print(X_train)
         Y_pred = model.run(X_test, X_train, Y_train)
@@ -215,12 +214,8 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
     return reality,prediction,score
 
 if __name__ == "__main__":
-    # print("Start of test")
-    # model = LinearRegressionBaselineModel()
-    # df1 = ApiCall().read_local(data='train')
-    # print("INITIAL SHAPE IS ",df1.shape)
-    # print(cross_val(model,df=df1,verbose=1))
-    # spam = 43
-    # print(namestr(spam,globals()))
-    # print(namestr(df,globals()))
-    pass
+    print("1")
+    df = ApiCall().read_local()
+    model = LinearRegressionBaselineModel()
+    cross_val(model,df)
+    print("debug done")
