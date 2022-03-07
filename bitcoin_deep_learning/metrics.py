@@ -9,7 +9,7 @@ from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.model import DummyModel
 
 # from bitcoin_deep_learning.cross_val import cross_val
-# from bitcoin_deep_learning.cross_val import cross_val_metrics
+from bitcoin_deep_learning.cross_val import cross_val_metrics
 
 class Mean_absolute_percentage_error():
     def __init__(self):

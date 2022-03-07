@@ -226,7 +226,7 @@ class ApiCall():
 
 if __name__=="__main__":
     df = ApiCall().get_clean_data()
-    ApiCall.data_to_csv(df)
+    ApiCall().data_to_csv(df)
     ApiCall().save_train_val_test_split(df)
     #print(len(df.columns))
     #assert len(df.columns)==32, "df should have 32 columns"

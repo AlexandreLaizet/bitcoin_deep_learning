@@ -10,8 +10,9 @@ import numpy as np
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.params import(FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,HORIZON)
-from bitcoin_deep_learning.metrics import (mean_absolute_error,
-                                           mean_absolute_percentage_error)
+from sklearn.metrics import mean_absolute_error
+#from bitcoin_deep_learning.metrics import (mean_absolute_error,
+                                           #mean_absolute_percentage_error)
 from tqdm import tqdm
 
 
@@ -181,7 +182,7 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
             X_train_seq = np.array(
                 train_fold_df.iloc[sequence_starts[j]:sequence_stops[j]])
             y_train = train_fold_df.iloc[target_idx[j], -1]
-            #Converting the little df to np array
+            # Converting the little df to np array
             X_train.append(np.array(X_train_seq))
             Y_train.append(np.array(y_train))
         # Converting the list of array to an array
@@ -204,7 +205,7 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
         X_test = np.array(X_test)
 
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
-        Y_pred = model.run(X_test,Y_test, X_train, Y_train)
+        Y_pred = model.run(X_test, X_train, Y_train)
 
         reality.append(Y_test)
         prediction.append(Y_pred)
