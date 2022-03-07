@@ -668,7 +668,7 @@ def play_charles_strategy(y_true,
     return pd.Series(daily_portfolio_position)
 
 def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
-                              df = ApiCall().read_local()):
+                              df = ApiCall().read_local(data = 'train')):
 
     roi_hodler = []
     roi_trader = []
