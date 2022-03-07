@@ -100,7 +100,7 @@ class LinearRegressionBaselineModel():
 loss = 'mse'
 optimizer = 'rmsprop'
 #metrics = ['mae, mape']
-metrics = 'mae'
+metrics = 'mape'
 
 class RnnDlModel():
     """
