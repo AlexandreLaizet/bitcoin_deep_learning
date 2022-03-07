@@ -79,6 +79,9 @@ class ApiCall():
         # Adding a diff column of the Bitcoin price on day t and the Bitcoin price on day (Horizon=7)
         global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]= (global_df["[+]_[T]_Bitcoin_Price"].diff(HORIZON)
                                                                    / global_df["[+]_[T]_Bitcoin_Price"])
+        global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"] = (global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"].
+                                                                      dropna().reset_index(drop=True) )
+
         #Making Api request for the hash rate, high number answer need special treatment
         hash_params = {'a': 'BTC', 'api_key': API_KEY,"f":"CSV","timestamp_format":"unix"}
         res = requests.get("https://api.glassnode.com/v1/metrics/mining/hash_rate_mean",params=hash_params)
@@ -170,6 +173,7 @@ class ApiCall():
                                 + ["[+]_[T]_Bitcoin_Price",f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]))
 
 
+
     #TODO implement a way to stock a df_train, df_test, df_val
     def data_to_csv(self, df=False,name="BTC_df", short=True):
         if not type(df)== pd.core.frame.DataFrame :
@@ -231,6 +235,4 @@ if __name__=="__main__":
     df = ApiCall().get_clean_data()
     ApiCall().data_to_csv(df)
     ApiCall().save_train_val_test_split(df)
-    #print(len(df.columns))
-    #assert len(df.columns)==32, "df should have 32 columns"
-    print("ok")
+    print("Data is up to date and has been saved to local")
