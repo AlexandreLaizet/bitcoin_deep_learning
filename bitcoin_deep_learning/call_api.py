@@ -216,11 +216,12 @@ class ApiCall():
     ###################################################################################################################
 
     def save_train_val_test_split(self,df):
-        train_df = df.iloc[:-180]
-        val_df = df.iloc[-(90+FOLD_TEST_SIZE+FOLD_TRAIN_SIZE+HORIZON):-90]
+        # If val_df, train_df should be 180
+        train_df = df.iloc[:-90]
+        # val_df = df.iloc[-(90+FOLD_TEST_SIZE+FOLD_TRAIN_SIZE+HORIZON):-90]
         test_df = df.iloc[-(FOLD_TEST_SIZE+FOLD_TRAIN_SIZE+HORIZON):]
         train_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'train_df.csv'),index=False)
-        val_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'val_df.csv'),index=False)
+        # val_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'val_df.csv'),index=False)
         test_df.to_csv(os.path.join(ROOT_DIR, "data_raw", 'test_df.csv'),index=False)
 
 
