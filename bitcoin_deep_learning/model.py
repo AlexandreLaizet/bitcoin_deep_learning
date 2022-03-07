@@ -62,10 +62,13 @@ class LinearRegressionBaselineModel():
 
     def preproc(self, X_test, X_train):
         scaler = MinMaxScaler()
-        X_train = X_train[:, -1, :]
+        #need to shuffle on each fold / np.array.shuffle(X_train ,axis = 0)
+        X_train = np.random.shuffle(X_train[:, -1, :])
+        #X_train = X_train[:, -1, :]
         scaler.fit(X_train)
         X_train = scaler.transform(X_train)
-        X_test = X_test[:, -1, :]
+        X_test = np.random.shuffle(X_test[:, -1, :])
+        #X_test = X_test[:, -1, :]
         X_test = scaler.transform(X_test)
         #scaling y_train ?
         return X_test, X_train
