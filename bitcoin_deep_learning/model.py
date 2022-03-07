@@ -145,7 +145,7 @@ class RnnDlModel():
 
         reg_l1 = regularizers.L1(self.L1)
         reg_l2 = regularizers.L2(self.L2)
-        reg_l1_l2 = regularizers.l1_l2(l1=0.005, l2=0.0005)
+        reg_l1_l2 = regularizers.l1_l2(l1=reg_l1, l2=reg_l2)
 
         self.model.add(GRU(units=128, return_sequences=True, activation='relu'))
         #self.model.add(layers.Dropout(rate=0.2))
