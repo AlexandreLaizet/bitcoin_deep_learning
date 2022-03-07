@@ -154,7 +154,7 @@ def cross_val(model, df,
         print(f"{model.name} has been cross-validated")
     return reality, prediction
 
-def get_cross_XY(data="train"):
+def get_cross_XY(data="train", verbose = 0):
     df = ApiCall().read_local(data='train')
     df = df.drop(columns=["date"])
     # Initializing the variable to return
@@ -163,7 +163,6 @@ def get_cross_XY(data="train"):
     start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
         df=df,verbose=verbose)
     # Starting the iteration on folds
-    print(len(start_fold_test))
     for i in range(len(start_fold_train)):
         # reinitialise the model between two folds to reset training
         train_fold_df = df.loc[start_fold_train[i]:
