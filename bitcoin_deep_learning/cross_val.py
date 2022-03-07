@@ -59,7 +59,6 @@ def fold_indexes(df,
     return list(start_fold_train),list(end_fold_train),list(start_fold_test),list(end_fold_test)
 
 
-#TODO sequence_indexe should take a df or a df.shape
 def sequence_indexes(df:pd.DataFrame,
                      sequence_lenght:int=sequence_lenght,
                      horizon:int=horizon,
@@ -142,6 +141,8 @@ def cross_val(model, df,
         X_test = np.array(X_test)
         breakpoint()
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
+
+        #TODO SHUFFLING THE X,y
         Y_pred = model.run(X_test,X_train, Y_train)
         print(model.model.coef_)
 
@@ -181,7 +182,7 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
         for j in range(len(sequence_starts)):
 
             X_train_seq = np.array(
-                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j]])
+                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j],:-1])
             y_train = train_fold_df.iloc[target_idx[j], -1]
             # Converting the little df to np array
             X_train.append(np.array(X_train_seq))
@@ -198,7 +199,7 @@ def cross_val_metrics(model, df:pd.DataFrame,hyperparams=None) :
         Y_test, X_test = [], []
         for j in range(len(sequence_starts)):
             X_test_seq = test_fold_df.iloc[
-                sequence_starts[j]:sequence_stops[j]]
+                sequence_starts[j]:sequence_stops[j],:-1]
             y_test = test_fold_df.iloc[target_idx[j], -1]
             X_test.append(np.array(X_test_seq))
             Y_test.append(np.array(y_test))
