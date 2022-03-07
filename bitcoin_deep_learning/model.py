@@ -67,6 +67,7 @@ class LinearRegressionBaselineModel():
         X_train = scaler.transform(X_train)
         X_test = X_test[:, -1, :]
         X_test = scaler.transform(X_test)
+        #scaling y_train ?
         return X_test, X_train
 
     def set_model(self):
@@ -169,7 +170,7 @@ class RnnDlModel():
         es = EarlyStopping(patience=self.patience, restore_best_weights=True)
         self.history = self.model.fit(X_train, y_train,
                 batch_size = 32, # Too small --> no generalization.
-#                                  Too large --> compute slowly
+        #                                  Too large --> compute slowly
                 epochs =self.epochs,
                 validation_split = 0.2,
                 #validation_data = (X_test,Y_test),
@@ -208,12 +209,12 @@ if __name__ == '__main__':
     df = ApiCall().read_local()
 
     # Dummy model
-    dummy_model = DummyModel()
-    print(cross_val(dummy_model, df))
+    # dummy_model = DummyModel()
+    # print(cross_val(dummy_model, df))
 
-    #Regression model
-    # reg_lin_model = LinearRegressionBaselineModel()
-    # print(cross_val(reg_lin_model, df))
+    # Regression model
+    reg_lin_model = LinearRegressionBaselineModel()
+    print(cross_val(reg_lin_model, df))
 
     #RNN model
     # rnn_model = RnnDlModel()
