@@ -24,6 +24,7 @@ class DummyModel():
     def __init__(self):
         self.set_model()
         self.name = 'Dummy'
+        self.hyperparams = None
 
     def preproc(self, X_test, X_train):
         return X_test, X_train
@@ -66,6 +67,7 @@ class LinearRegressionBaselineModel():
         X_train = scaler.transform(X_train)
         X_test = X_test[:, -1, :]
         X_test = scaler.transform(X_test)
+        #scaling y_train ?
         return X_test, X_train
 
     def set_model(self):
@@ -100,7 +102,7 @@ class LinearRegressionBaselineModel():
 loss = 'mse'
 optimizer = 'rmsprop'
 #metrics = ['mae, mape']
-metrics = 'mae'
+metrics = 'mape'
 
 class RnnDlModel():
     """
@@ -143,22 +145,22 @@ class RnnDlModel():
         reg_l1_l2 = regularizers.l1_l2(l1=0.005, l2=0.0005)
 
         self.model.add(GRU(units=128, return_sequences=True, activation='relu'))
-        self.model.add(layers.Dropout(rate=0.2))
+        #self.model.add(layers.Dropout(rate=0.2))
         self.model.add(GRU(units=64, return_sequences=True, activation='relu'))
-        self.model.add(layers.Dropout(rate=0.2))
+        #self.model.add(layers.Dropout(rate=0.2))
         self.model.add(GRU(units=32, activation='relu'))
-        self.model.add(layers.Dropout(rate=0.2))
+        #self.model.add(layers.Dropout(rate=0.2))
 
         self.model.add(
             layers.Dense(32, activation="relu", kernel_regularizer=reg_l1))
-        self.model.add(layers.Dropout(rate=0.2))
+        #self.model.add(layers.Dropout(rate=0.2))
         self.model.add(
             layers.Dense(16, activation="relu", bias_regularizer=reg_l2))
-        self.model.add(layers.Dropout(rate=0.2))
+        #self.model.add(layers.Dropout(rate=0.2))
         self.model.add(
             layers.Dense(8, activation="relu",
                          activity_regularizer=reg_l1_l2))
-        self.model.add(layers.Dropout(rate=0.2))
+        #self.model.add(layers.Dropout(rate=0.2))
         self.model.add(layers.Dense(1, activation="linear"))
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
         return self
@@ -168,7 +170,7 @@ class RnnDlModel():
         es = EarlyStopping(patience=self.patience, restore_best_weights=True)
         self.history = self.model.fit(X_train, y_train,
                 batch_size = 32, # Too small --> no generalization.
-#                                  Too large --> compute slowly
+        #                                  Too large --> compute slowly
                 epochs =self.epochs,
                 validation_split = 0.2,
                 #validation_data = (X_test,Y_test),
@@ -207,12 +209,12 @@ if __name__ == '__main__':
     df = ApiCall().read_local()
 
     # Dummy model
-    dummy_model = DummyModel()
-    print(cross_val(dummy_model, df))
+    # dummy_model = DummyModel()
+    # print(cross_val(dummy_model, df))
 
-    #Regression model
-    # reg_lin_model = LinearRegressionBaselineModel()
-    # print(cross_val(reg_lin_model, df))
+    # Regression model
+    reg_lin_model = LinearRegressionBaselineModel()
+    print(cross_val(reg_lin_model, df))
 
     #RNN model
     # rnn_model = RnnDlModel()
