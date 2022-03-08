@@ -103,7 +103,7 @@ class LinearRegressionBaselineModel():
 loss = 'mse'
 optimizer = 'rmsprop'
 #metrics = ['mae, mape']
-metrics = 'mape'
+metrics = 'mae'
 
 class RnnDlModel():
     """
@@ -188,7 +188,7 @@ class RnnDlModel():
         return y_pred
 
     def run(self, X_test, X_train, y_train):
-        self.preproc(X_test, X_train)
+        X_test,X_train = self.preproc(X_test, X_train)
         self.set_model()
         self.fit(X_train, y_train)
         return self.predict(X_test)
