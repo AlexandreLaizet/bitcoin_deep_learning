@@ -275,14 +275,14 @@ class LinearRegressionBaselineModel3():
         self.fit(X_train, y_train)
         return self.predict(X_test)
 
-class RandomForestRegressor():
+class RandomForestReg():
     """
     Predict y_pred based on a linear regression
     """
     def __init__(self,n_estimators=1000):
         self.name = "ClassicLinearReg"
         self.estimators = n_estimators
-        self.hyperparams = {"n_estimator":self.n_estimators}
+        self.hyperparams = {"n_estimator":self.estimators}
         self.set_model()
 
     def preproc(self, X_test, X_train):
@@ -296,7 +296,7 @@ class RandomForestRegressor():
         return X_test, X_train
 
     def set_model(self):
-        self.model = RandomForestRegressor(n_estimators=1000)
+        self.model = RandomForestRegressor()
         return self
 
     def fit(self, X_train, y_train = None):
