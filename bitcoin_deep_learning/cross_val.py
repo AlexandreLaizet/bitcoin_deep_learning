@@ -288,7 +288,7 @@ def cross_val_trade(model, df,
     return reality, prediction '''
     df = df.drop(columns=["date"])
     # Initializing the variable to return
-    prediction_diff, past_reality, reality,reality_diff, prediction = [], [], [], [], []
+    prediction_diff, past_reality, reality, reality_diff = [], [], [], []
     # Setting the indexes to cut the df into folds
     start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
         df=df,verbose=verbose)
@@ -297,9 +297,6 @@ def cross_val_trade(model, df,
         # reinitialise the model between two folds to reset training
         model.set_model()
         # instantiating train fold
-        if verbose >= 10 :
-            print("Creating sequences in the train_fold")
-        print(start_fold_test[0],end_fold_test[0])
         train_fold_df = df.loc[start_fold_train[i]:
                                  end_fold_train[i]].copy().reset_index(drop=True)
         # Setting the indexes to cut the train_fold in regular sequences and targets
@@ -325,14 +322,13 @@ def cross_val_trade(model, df,
         ).reset_index(drop=True)
         sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
         Y_test,X_test,Y_true_price_past, Y_true_price = [],[],[], []
-        print(test_fold_df.shape)
+
         for j in range(len(sequence_starts)):
             X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j]]
             y_test = test_fold_df.iloc[target_idx[j], -1]
             y_true_price_past = test_fold_df.iloc[target_idx[j]-HORIZON, -2]
             y_true_price = test_fold_df.iloc[target_idx[j], -2]
 
-            print(target_idx[j])
             #y_true_price_minus_horizon = test_fold_df.iloc[target_idx[j], -2]
             X_test.append(np.array(X_test_seq))
             Y_true_price_past.append(y_true_price_past)
@@ -355,7 +351,7 @@ def cross_val_trade(model, df,
         reality.append(Y_true)
 
     # NOTA BENE PAST_REALITY HERE IS {HORIZON DAYS BEHIND REALITY}
-    return past_reality, reality,reality_diff, prediction
+    return past_reality, reality,reality_diff, prediction_diff
 
 
 if __name__ == "__main__":
