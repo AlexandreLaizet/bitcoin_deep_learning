@@ -111,7 +111,7 @@ class RnnDlModel():
 
     def __init__(self, L1 = 0.01, L2 = 0.01,
                  loss = loss, optimizer = optimizer, metrics = metrics,
-                 epochs=100, patience=20):
+                 epochs=50, patience=10):
         self.name = "RNN"
         self.loss = loss
         self.optimizer = optimizer
