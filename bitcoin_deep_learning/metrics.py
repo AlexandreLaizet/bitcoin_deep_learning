@@ -680,8 +680,7 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     sharpe_charles = []
     score_list = []
 
-    # WE CAN'T IMPORT cross_val in this files (circular import)
-    realities, predictions, scores = cross_val_metrics(model, df)
+    realities, predictions, = cross_val(model, df)
 
     for reality, prediction in zip(realities,predictions):
         y_true, y_pred = reality, prediction

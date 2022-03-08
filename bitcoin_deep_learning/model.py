@@ -94,7 +94,6 @@ class LinearRegressionBaselineModel():
 
     def run(self, X_test, X_train, y_train):
         X_test, X_train = self.preproc(X_test, X_train)
-        breakpoint()
         self.fit(X_train, y_train)
         return self.predict(X_test)
 
