@@ -75,8 +75,7 @@ class ApiCall():
         # Adding a diff column of the Bitcoin price on day t and the Bitcoin price on day (Horizon=7)
         global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]= (global_df["[+]_[T]_Bitcoin_Price"].diff(HORIZON)
                                                                     / global_df["[+]_[T]_Bitcoin_Price"])
-        global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"] = (global_df[f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"].
-                                                                       dropna().reset_index(drop=True) )
+
 
         #Making Api request for the hash rate, high number answer need special treatment
         hash_params = {'a': 'BTC', 'api_key': API_KEY,"f":"CSV","timestamp_format":"unix"}
