@@ -13,6 +13,7 @@ from bitcoin_deep_learning.model import LinearRegressionBaselineModel,DummyModel
 from bitcoin_deep_learning.metrics import Mean_absolute_percentage_error
 from bitcoin_deep_learning.params import (ROOT_DIR, FOLD_TEST_SIZE,
                                           FOLD_TRAIN_SIZE, HORIZON, API_KEY)
+from sklearn.metrics import mean_absolute_error
 
 
 def train(model,
@@ -22,7 +23,7 @@ def train(model,
           precision:int=5
           ):
     reality,prediction = cross_val(model,df)
-    fold_score = [round(metric.compute(Y_true,Y_pred),precision)
+    fold_score = [round(mean_absolute_error(Y_true,Y_pred),precision)
                             for Y_true,Y_pred in zip(reality,prediction)]
     score =round(np.mean(np.array(fold_score)),precision)
     # Option to save results
