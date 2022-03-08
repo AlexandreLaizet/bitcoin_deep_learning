@@ -1,5 +1,4 @@
 from bitcoin_deep_learning.call_api import *
-#from bitcoin_deep_learning.metrics import *
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import MinMaxScaler
@@ -111,7 +110,7 @@ class RnnDlModel():
 
     def __init__(self, L1 = 0.01, L2 = 0.01,
                  loss = loss, optimizer = optimizer, metrics = metrics,
-                 epochs=100, patience=20):
+                 epochs=50, patience=10):
         self.name = "RNN"
         self.loss = loss
         self.optimizer = optimizer

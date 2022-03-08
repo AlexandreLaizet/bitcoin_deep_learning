@@ -152,7 +152,9 @@ def cross_val(model, df,
     return reality, prediction
 
 def get_cross_XY(data="train", verbose = 0):
-    df = ApiCall().read_local(data='train')
+    '''    return (X_train_list, Y_train_list, X_test_list,Y_test_list)
+    '''
+    df = ApiCall().read_local(data=data)
     df = df.drop(columns=["date"])
     # Initializing the variable to return
     X_train_list, Y_train_list, X_test_list,Y_test_list = [], [], [],[]
