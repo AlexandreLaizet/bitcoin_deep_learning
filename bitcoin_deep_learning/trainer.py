@@ -11,8 +11,8 @@ from bitcoin_deep_learning.cross_val import cross_val
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel,DummyModel
 #from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.metrics import Mean_absolute_percentage_error
-from bitcoin_deep_learning.params import (ROOT_DIR,FOLD_TEST_SIZE,
-                                          FOLD_TRAIN_SIZE,HORIZON)
+from bitcoin_deep_learning.params import (ROOT_DIR, FOLD_TEST_SIZE,
+                                          FOLD_TRAIN_SIZE, HORIZON, API_KEY)
 
 
 #model = LinearRegressionBaselineModel()

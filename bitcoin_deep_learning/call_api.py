@@ -5,13 +5,9 @@ import time
 import datetime
 from datetime import date, timedelta
 from tqdm import tqdm
-#from dotenv import load_dotenv, find_dotenv
-from dotenv import load_dotenv
-load_dotenv()
 import os
-API_KEY = os.getenv('API_KEY')
-from bitcoin_deep_learning.params import (ROOT_DIR,FOLD_TRAIN_SIZE,
-                                          FOLD_TEST_SIZE,HORIZON)
+from bitcoin_deep_learning.params import (ROOT_DIR, FOLD_TRAIN_SIZE,
+                                          FOLD_TEST_SIZE, HORIZON, API_KEY)
 
 
 class ApiCall():

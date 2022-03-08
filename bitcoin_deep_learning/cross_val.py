@@ -11,8 +11,6 @@ from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.params import(FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,HORIZON)
 from sklearn.metrics import mean_absolute_error
-#from bitcoin_deep_learning.metrics import (mean_absolute_error,
-                                           #mean_absolute_percentage_error)
 from tqdm import tqdm
 
 
