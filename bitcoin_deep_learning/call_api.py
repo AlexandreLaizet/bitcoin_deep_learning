@@ -163,7 +163,7 @@ class ApiCall():
                                           "[+]_[NH]_Number_of_Addresses_with_Balance_≥_1k"])
 
         return df_clean.reindex(columns=(['date'] +
-                                list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price']).columns)
+                                list(df_clean.copy().drop(columns = ['date','[+]_[T]_Bitcoin_Price',f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]).columns)
                                 + ["[+]_[T]_Bitcoin_Price"
                                     ,f"[%]_Bitcoin_growth_rate_on_Horizon={HORIZON}"]))
 
