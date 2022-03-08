@@ -15,10 +15,6 @@ from bitcoin_deep_learning.params import (ROOT_DIR, FOLD_TEST_SIZE,
                                           FOLD_TRAIN_SIZE, HORIZON, API_KEY)
 
 
-#model = LinearRegressionBaselineModel()
-
-
-model = LinearRegressionBaselineModel({"alpha":1,"l1_ratio":0.5})
 def train(model,
           df,
           metric=Mean_absolute_percentage_error(),
