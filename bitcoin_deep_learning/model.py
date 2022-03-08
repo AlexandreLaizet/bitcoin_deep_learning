@@ -3,6 +3,8 @@ from bitcoin_deep_learning.call_api import *
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestRegressor
+
 
 from tensorflow.keras import regularizers
 from tensorflow.keras import layers
@@ -165,7 +167,7 @@ class RnnDlModel():
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
         return self
 
-    def fit(self, X_train, y_train, verbose = 0):
+    def fit(self, X_train, y_train, verbose = 1):
         #print(X_train.shape)
         es = EarlyStopping(patience=self.patience, restore_best_weights=True)
         self.history = self.model.fit(
@@ -199,12 +201,10 @@ class LinearRegressionBaselineModel2():
     Predict y_pred based on a linear regression
     """
 
-    def __init__(self, alpha = 1, l1_ratio = 0.5):
-        self.name = "LinearReg"
-        self.alpha = alpha
-        self.l1_ratio = l1_ratio
+    def __init__(self):
+        self.name = "ClassicLinearReg"
         self.max_iter = 10_000
-        self.hyperparams = {"alpha":alpha,"l1_ratio":l1_ratio}
+        self.hyperparams = "None"
         self.set_model()
 
     def preproc(self, X_test, X_train):
@@ -234,6 +234,87 @@ class LinearRegressionBaselineModel2():
         breakpoint()
         self.fit(X_train, y_train)
         return self.predict(X_test)
+
+
+from sklearn.linear_model import Ridge
+
+class LinearRegressionBaselineModel3():
+    """
+    Predict y_pred based on a linear regression
+    """
+    def __init__(self):
+        self.name = "ClassicLinearReg"
+        self.max_iter = 10_000
+        self.hyperparams = "None"
+        self.set_model()
+
+    def preproc(self, X_test, X_train):
+        scaler = MinMaxScaler()
+        X_train = X_train[:, -1, :]
+        scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = X_test[:, -1, :]
+        X_test = scaler.transform(X_test)
+        #scaling y_train ?
+        return X_test, X_train
+
+    def set_model(self):
+        self.model = LinearRegression(n_jobs=10_000)
+        return self
+
+    def fit(self, X_train, y_train = None):
+        self.model.fit(X_train, y_train)
+        return self
+
+    def predict(self, X_test):
+        y_pred = self.model.predict(X_test)
+        return y_pred
+
+    def run(self, X_test, X_train, y_train):
+        X_test, X_train = self.preproc(X_test, X_train)
+        breakpoint()
+        self.fit(X_train, y_train)
+        return self.predict(X_test)
+
+model = RandomForestRegressor(n_estimators=1000)
+    """
+    Predict y_pred based on a linear regression
+    """
+    def __init__(self,n_estimators=1000):
+        self.name = "ClassicLinearReg"
+        self.estimators = n_estimators
+        self.hyperparams = {"n_estimator":self.n_estimators}
+        self.set_model()
+
+    def preproc(self, X_test, X_train):
+        scaler = MinMaxScaler()
+        X_train = X_train[:, -1, :]
+        scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = X_test[:, -1, :]
+        X_test = scaler.transform(X_test)
+        #scaling y_train ?
+        return X_test, X_train
+
+    def set_model(self):
+        self.model = RandomForestRegressor(n_estimators=1000)
+        return self
+
+    def fit(self, X_train, y_train = None):
+        self.model.fit(X_train, y_train)
+        return self
+
+    def predict(self, X_test):
+        y_pred = self.model.predict(X_test)
+        return y_pred
+
+    def run(self, X_test, X_train, y_train):
+        X_test, X_train = self.preproc(X_test, X_train)
+        breakpoint()
+        self.fit(X_train, y_train)
+        return self.predict(X_test)
+
+
 
 
 if __name__ == '__main__':
