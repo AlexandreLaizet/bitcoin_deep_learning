@@ -175,7 +175,7 @@ def get_cross_XY(data="train", verbose = 0):
         for j in range(len(sequence_starts)):
 
             X_train_seq = np.array(
-                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j],:-1])
+                train_fold_df.iloc[sequence_starts[j]:sequence_stops[j]])
             y_train = train_fold_df.iloc[target_idx[j], -1]
             #Converting the little df to np array
             X_train.append(np.array(X_train_seq))
@@ -193,7 +193,7 @@ def get_cross_XY(data="train", verbose = 0):
         sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
         Y_test,X_test = [],[]
         for j in range(len(sequence_starts)):
-            X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j],:-1]
+            X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j]]
             y_test = test_fold_df.iloc[target_idx[j], -1]
             X_test.append(np.array(X_test_seq))
             Y_test.append(np.array(y_test))
