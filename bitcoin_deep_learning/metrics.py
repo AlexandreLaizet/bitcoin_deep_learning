@@ -181,7 +181,8 @@ def play_trader_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -207,7 +208,8 @@ def play_trader_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -312,7 +314,8 @@ def play_whale_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -338,7 +341,8 @@ def play_whale_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -443,7 +447,8 @@ def play_hodler_whale_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -469,7 +474,8 @@ def play_hodler_whale_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -574,7 +580,8 @@ def play_charles_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -600,7 +607,8 @@ def play_charles_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -713,7 +721,7 @@ if __name__ == '__main__':
     # print(compute_roi(play_trader_strategy_2(y_true, y_pred)))
     # print(compute_sharpe_ratio(play_trader_strategy_2(y_true, y_pred)))
 
-    model = LinearRegressionBaselineModel()
+    model = LinearRegressionBaselineModel(alpha = 0.5 , l1_ratio = 0.01)
     roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
     print("---")
     print("Hodler roi: ", roi_hodler)
