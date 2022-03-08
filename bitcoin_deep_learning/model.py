@@ -275,7 +275,7 @@ class LinearRegressionBaselineModel3():
         self.fit(X_train, y_train)
         return self.predict(X_test)
 
-model = RandomForestRegressor(n_estimators=1000)
+class RandomForestRegressor():
     """
     Predict y_pred based on a linear regression
     """
