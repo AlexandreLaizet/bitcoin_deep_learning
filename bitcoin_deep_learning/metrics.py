@@ -7,6 +7,8 @@ import pandas as pd
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.model import DummyModel
+from bitcoin_deep_learning.model import RnnDlModel
+
 from bitcoin_deep_learning.cross_val import cross_val_trade
 
 class Mean_absolute_percentage_error():
@@ -755,8 +757,9 @@ if __name__ == '__main__':
 
     #print(len(preds_arr))
 
-    #model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001)
+    model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001)
     #model = DummyModel()
+    #model = RnnDlModel()
 
     roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
     print("---")
