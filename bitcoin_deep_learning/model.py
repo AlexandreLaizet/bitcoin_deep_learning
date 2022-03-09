@@ -172,7 +172,7 @@ class RnnDlModel():
         self.history = self.model.fit(
             X_train,
             y_train,
-            batch_size = 32,  # Too small --> no generalization. Too large --> compute slowly
+            batch_size = 64,  # Too small --> no generalization. Too large --> compute slowly
             epochs=self.epochs,
             validation_split=0.2,
             #validation_data = (X_test,Y_test),
