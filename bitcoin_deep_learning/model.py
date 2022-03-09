@@ -136,7 +136,7 @@ class RnnDlModel():
         #Scaler X_test
         X_test_scaled = (X_test - mins) / (maxes - mins)
         #print(np.max(X_train_scaled, axis = (0,1)))#
-        return X_train_scaled, X_test_scaled
+        return X_test_scaled, X_train_scaled
 
     def set_model(self):
         self.model = Sequential()
