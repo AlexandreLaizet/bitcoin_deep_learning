@@ -103,7 +103,6 @@ class LinearRegressionBaselineModel():
 
 # RNN model is our deep learning model that we will tune to beat our both dummy and baseline models
 
-
 def custom_mean_squared_error(y_true, y_pred):
     # Choose carefully this ratio to penalize more prediction with wrong sign!
     relative_penalty_factor_for_wrong_sign = 10.
@@ -117,7 +116,7 @@ def custom_mean_squared_error(y_true, y_pred):
     return tf.math.reduce_mean(tf.square(y_true - y_pred)) * dir_loss
 
 #optimizer = 'rmsprop'
-#metrics = ['mae, mape']
+#metrics= ['mae, mape']
 metrics = 'mae'
 loss = 'mse'
 optimizer = Adam(learning_rate=0.001)
