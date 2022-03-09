@@ -7,7 +7,7 @@ import numpy as np
 #            LOCAL IMPORTS
 ################################################################################
 
-from bitcoin_deep_learning.model import LinearRegressionBaselineModel
+from bitcoin_deep_learning.model import LinearRegressionBaselineModel, RnnDlModel
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.params import(FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,HORIZON)
 from sklearn.metrics import mean_absolute_error
@@ -186,7 +186,7 @@ def get_cross_XY(data="train", verbose = 0):
         X_train_list.append(X_train)
         Y_train_list.append(Y_train)
 
-    #Same process as ahead but on the test_fold
+        #Same process as ahead but on the test_fold
         test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
         ).reset_index(drop=True)
         sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
@@ -357,6 +357,6 @@ def cross_val_trade(model, df,
 if __name__ == "__main__":
     print("1")
     df = ApiCall().read_local()
-    model = LinearRegressionBaselineModel()
+    model = RnnDlModel(epochs=1, patience=1)
     cross_val(model,df)
     print("debug done")
