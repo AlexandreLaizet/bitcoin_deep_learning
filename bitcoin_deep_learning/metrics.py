@@ -748,8 +748,8 @@ if __name__ == '__main__':
 
     #print(len(preds_arr))
 
-    #model = LinearRegressionBaselineModel(alpha = 0.5 , l1_ratio = 0.01)
-    model = DummyModel()
+    model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.001)
+    #model = DummyModel()
     roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
     print("---")
     print("Hodler roi: ", roi_hodler)
