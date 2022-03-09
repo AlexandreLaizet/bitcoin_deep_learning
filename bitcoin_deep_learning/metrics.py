@@ -545,8 +545,8 @@ def play_charles_strategy(y_true,
                           y_pred,
                           total_investment = 3000,
                           investment_horizon = 7,
-                          buy_threshold = 0.05,
-                          sell_threshold = - 0.05,
+                          buy_threshold = -0.05,
+                          sell_threshold = - 0.30,
                           exchange_fee = 0.005,
                           tax_rate = 0.30):
     """
@@ -597,8 +597,8 @@ def play_charles_strategy(y_true,
                     btc_balance += btc_usd_balance / value
                     reassessment_day = counter + investment_horizon
 
-                    print(f"price bought {value}")
-                    print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
+                    ###print(f"price bought {value}")
+                    ###print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
 
                 else:
                     btc_usd_balance = btc_balance * value
@@ -615,7 +615,7 @@ def play_charles_strategy(y_true,
                         btc_usd_balance = 0
                         btc_balance = 0
 
-                        print(f"price sold {value}")
+                        ###print(f"price sold {value}")
 
                         # Tax-calc-start
                         wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
@@ -641,7 +641,7 @@ def play_charles_strategy(y_true,
                     btc_usd_balance = 0
                     btc_balance = 0
 
-                    print(f"price sold {value}")
+                    ###print(f"price sold {value}")
 
                     # Tax-calc-start
                     wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
@@ -662,7 +662,7 @@ def play_charles_strategy(y_true,
 
         counter += 1
 
-        print(counter)
+        ###print(counter)
 
     # Tax-pay-start
     if np.array(taxable_basis).sum() > 0:
@@ -671,6 +671,8 @@ def play_charles_strategy(y_true,
     # Tax-pay-end
 
     ### print(np.array(taxable_basis).sum() * tax_rate)
+
+    ###print(daily_portfolio_position[-1])
 
     return pd.Series(daily_portfolio_position)
 
@@ -687,6 +689,8 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     sharpe_hodler_whale = []
     sharpe_charles = []
     score_list = []
+
+    portfolio_positions = []
 
     #realities, predictions, = cross_val(model, df)
     #past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
@@ -718,6 +722,9 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
         sharpe_charles.append(compute_sharpe_ratio(play_charles_strategy(y_true, y_pred)))
         #score_list.append(np.array(score).mean())
 
+        #portfolio_positions.append()
+        #print(roi_charles)
+
     return np.array(roi_hodler).mean(), np.array(roi_trader).mean(), np.array(roi_whale).mean(), np.array(roi_hodler_whale).mean(), np.array(roi_charles).mean(), np.array(sharpe_hodler).mean(), np.array(sharpe_trader).mean(), np.array(sharpe_whale).mean(), np.array(sharpe_hodler_whale).mean(), np.array(sharpe_charles).mean()
 
 if __name__ == '__main__':
@@ -748,8 +755,9 @@ if __name__ == '__main__':
 
     #print(len(preds_arr))
 
-    model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.001)
+    #model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001)
     #model = DummyModel()
+
     roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
     print("---")
     print("Hodler roi: ", roi_hodler)
