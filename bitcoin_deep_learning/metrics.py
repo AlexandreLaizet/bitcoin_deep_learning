@@ -7,7 +7,7 @@ import pandas as pd
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
 from bitcoin_deep_learning.model import DummyModel
-from bitcoin_deep_learning.cross_val import cross_val
+from bitcoin_deep_learning.cross_val import cross_val_trade
 
 class Mean_absolute_percentage_error():
     def __init__(self):
@@ -181,8 +181,8 @@ def play_trader_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
-            if list(y_pred)[counter + investment_horizon] > buy_threshold:
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -208,8 +208,8 @@ def play_trader_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
-                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -314,8 +314,8 @@ def play_whale_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
-            if list(y_pred)[counter + investment_horizon] > buy_threshold:
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -341,8 +341,8 @@ def play_whale_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
-                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -447,8 +447,8 @@ def play_hodler_whale_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
-            if list(y_pred)[counter + investment_horizon] > buy_threshold:
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -474,8 +474,8 @@ def play_hodler_whale_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
-                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
@@ -545,8 +545,8 @@ def play_charles_strategy(y_true,
                           y_pred,
                           total_investment = 3000,
                           investment_horizon = 7,
-                          buy_threshold = 0.10,
-                          sell_threshold = - 0.10,
+                          buy_threshold = 0.05,
+                          sell_threshold = - 0.05,
                           exchange_fee = 0.005,
                           tax_rate = 0.30):
     """
@@ -580,8 +580,8 @@ def play_charles_strategy(y_true,
 
         if len(list(y_pred)) > counter + investment_horizon:
 
-            #if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
-            if list(y_pred)[counter + investment_horizon] > buy_threshold:
+            if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
+            #if list(y_pred)[counter + investment_horizon] > buy_threshold:
 
                 if usd_balance > 0:
 
@@ -597,8 +597,8 @@ def play_charles_strategy(y_true,
                     btc_balance += btc_usd_balance / value
                     reassessment_day = counter + investment_horizon
 
-                    ### print(f"price bought {value}")
-                    ### print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
+                    print(f"price bought {value}")
+                    print(f"price predicted {list(y_pred)[counter + investment_horizon]}")
 
                 else:
                     btc_usd_balance = btc_balance * value
@@ -607,15 +607,15 @@ def play_charles_strategy(y_true,
 
                 if counter >= reassessment_day:
 
-                    #if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
-                    if list(y_pred)[counter + investment_horizon] < sell_threshold:
+                    if ((list(y_pred)[counter + investment_horizon] / value) -1) < sell_threshold:
+                    #if list(y_pred)[counter + investment_horizon] < sell_threshold:
 
                         btc_usd_balance = btc_balance * value
                         usd_balance += btc_usd_balance - (btc_usd_balance * exchange_fee)
                         btc_usd_balance = 0
                         btc_balance = 0
 
-                        ### print(f"price sold {value}")
+                        print(f"price sold {value}")
 
                         # Tax-calc-start
                         wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
@@ -641,7 +641,7 @@ def play_charles_strategy(y_true,
                     btc_usd_balance = 0
                     btc_balance = 0
 
-                    ### print(f"price sold {value}")
+                    print(f"price sold {value}")
 
                     # Tax-calc-start
                     wa_cost_basis = (np.array(investments) * np.array(cost_basis)).sum() / np.array(investments).sum()
@@ -662,7 +662,7 @@ def play_charles_strategy(y_true,
 
         counter += 1
 
-        ### print(counter)
+        print(counter)
 
     # Tax-pay-start
     if np.array(taxable_basis).sum() > 0:
@@ -688,9 +688,22 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     sharpe_charles = []
     score_list = []
 
-    realities, predictions, = cross_val(model, df)
+    #realities, predictions, = cross_val(model, df)
+    #past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
+    past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
+    ct = 0
+    preds = []
+    preds_arr = []
+    for past_prices, diffs in zip(past_realities,prediction_diff):
+        for diff in diffs:
+            preds.append(past_prices[ct] + past_prices[ct] * diff)
+            ct += 1
+        preds_arr.append(np.array(preds))
+        preds.clear()
+        ct = 0
 
-    for reality, prediction in zip(realities,predictions):
+    #for reality, prediction in zip(realities,prediction_diff):
+    for reality, prediction in zip(realities, preds_arr):
         y_true, y_pred = reality, prediction
 
         roi_hodler.append(compute_roi(play_hodler_strategy(y_true, y_pred)))
@@ -721,7 +734,22 @@ if __name__ == '__main__':
     # print(compute_roi(play_trader_strategy_2(y_true, y_pred)))
     # print(compute_sharpe_ratio(play_trader_strategy_2(y_true, y_pred)))
 
-    model = LinearRegressionBaselineModel(alpha = 0.5 , l1_ratio = 0.01)
+    #past_realities, realities, realities_diff, prediction_diff = cross_val_trade(LinearRegressionBaselineModel(alpha = 0.5 , l1_ratio = 0.01), ApiCall().read_local(data = 'train'))
+    #ct = 0
+    #preds = []
+    #preds_arr = []
+    #for past_prices, diffs in zip(past_realities,prediction_diff):
+    #    for diff in diffs:
+    #        preds.append(past_prices[ct] + past_prices[ct] * diff)
+    #        ct += 1
+    #    preds_arr.append(np.array(preds))
+    #    preds.clear()
+    #    ct = 0
+
+    #print(len(preds_arr))
+
+    #model = LinearRegressionBaselineModel(alpha = 0.5 , l1_ratio = 0.01)
+    model = DummyModel()
     roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
     print("---")
     print("Hodler roi: ", roi_hodler)

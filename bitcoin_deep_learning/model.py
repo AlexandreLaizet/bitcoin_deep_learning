@@ -38,7 +38,7 @@ class DummyModel():
         return self
 
     def predict(self, X_test):
-        y_pred = X_test[:, -1, -1]
+        y_pred = X_test[:, -7, -1]
         return y_pred
 
     def run(self, X_test, X_train, y_train):
