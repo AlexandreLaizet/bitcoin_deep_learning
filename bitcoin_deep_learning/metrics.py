@@ -3,6 +3,8 @@ from sklearn.utils import check_array
 from numpy import mean, abs
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 
 from bitcoin_deep_learning.call_api import ApiCall
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel
@@ -697,16 +699,9 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     #realities, predictions, = cross_val(model, df)
     #past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
     past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
-    ct = 0
-    preds = []
     preds_arr = []
     for past_prices, diffs in zip(past_realities,prediction_diff):
-        for diff in diffs:
-            preds.append(past_prices[ct] + past_prices[ct] * diff)
-            ct += 1
-        preds_arr.append(np.array(preds))
-        preds.clear()
-        ct = 0
+        preds_arr.append(past_prices * diffs+ past_prices )
 
     #for reality, prediction in zip(realities,prediction_diff):
     for reality, prediction in zip(realities, preds_arr):
@@ -725,9 +720,51 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
         #score_list.append(np.array(score).mean())
 
         #portfolio_positions.append()
-        #print(roi_charles)
+    print(roi_charles)
 
     return np.array(roi_hodler).mean(), np.array(roi_trader).mean(), np.array(roi_whale).mean(), np.array(roi_hodler_whale).mean(), np.array(roi_charles).mean(), np.array(sharpe_hodler).mean(), np.array(sharpe_trader).mean(), np.array(sharpe_whale).mean(), np.array(sharpe_hodler_whale).mean(), np.array(sharpe_charles).mean()
+
+def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train')):
+
+    portfolio_positions_hodler = []
+    portfolio_positions_trader = []
+    portfolio_positions_whale = []
+    portfolio_positions_hodler_whale = []
+    portfolio_positions_charles = []
+
+    past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
+    preds_arr = []
+    for past_prices, diffs in zip(past_realities,prediction_diff):
+        preds_arr.append(past_prices * diffs+ past_prices )
+
+
+    for reality, prediction in zip(realities, preds_arr):
+        y_true, y_pred = reality, prediction
+
+        portfolio_positions_hodler.append(play_hodler_strategy(y_true, y_pred))
+        portfolio_positions_trader.append(play_trader_strategy(y_true, y_pred))
+        portfolio_positions_whale.append(play_whale_strategy(y_true, y_pred))
+        portfolio_positions_hodler_whale.append(play_hodler_whale_strategy(y_true, y_pred))
+        portfolio_positions_charles.append(play_charles_strategy(y_true, y_pred))
+
+    return portfolio_positions_hodler, portfolio_positions_trader, portfolio_positions_whale, portfolio_positions_hodler_whale, portfolio_positions_charles
+
+def plot_portolio_positions(positions=iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train'))):
+
+    hodler, trader, whale, hodler_whale, charles = positions
+
+    figure(figsize=(10, 6), dpi=100)
+
+    plt.plot(hodler[0][:-1], label="Hodler")
+    plt.plot(trader[0][:-1], label="Trader")
+    plt.plot(whale[0][:-1], label="Whale")
+    plt.plot(hodler_whale[0][:-1], label="Hodler whale")
+    plt.plot(charles[0][:-1], label="Charles")
+
+    plt.title("Investment strategies' results by investment strategy")
+    plt.xlabel("Days")
+    plt.ylabel("USD portfolio value")
+    plt.legend()
 
 if __name__ == '__main__':
     # df = ApiCall().read_local()
