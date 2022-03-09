@@ -11,9 +11,12 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import SimpleRNN, LSTM, GRU
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
+import tensorflow as tf
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Dummy model will be a model using the last price value the predict the next price value
 
@@ -100,21 +103,40 @@ class LinearRegressionBaselineModel():
 
 # RNN model is our deep learning model that we will tune to beat our both dummy and baseline models
 
-loss = 'mse'
-optimizer = 'rmsprop'
+
+def custom_mean_squared_error(y_true, y_pred):
+    # Choose carefully this ratio to penalize more prediction with wrong sign!
+    relative_penalty_factor_for_wrong_sign = 10.
+
+    mask_same_sign = tf.greater_equal(tf.multiply(y_true, y_pred),
+                                      tf.zeros_like(y_true))
+    dir_loss = tf.reduce_mean(
+        tf.where(mask_same_sign, 1., relative_penalty_factor_for_wrong_sign))
+    mse_loss = tf.math.reduce_mean(tf.square(y_true - y_pred))
+    total_loss = mse_loss * dir_loss
+    return tf.math.reduce_mean(tf.square(y_true - y_pred)) * dir_loss
+
+#optimizer = 'rmsprop'
 #metrics = ['mae, mape']
 metrics = 'mae'
+loss = 'mse'
+optimizer = Adam(learning_rate=0.001)
 
 class RnnDlModel():
     """
     Return the last value on the price column
     """
 
-    def __init__(self, L1 = 0.01, L2 = 0.01,
-                 loss = loss, optimizer = optimizer, metrics = metrics,
-                 epochs=50, patience=10):
+    def __init__(self,
+                 L1=0.01,
+                 L2=0.01,
+                 loss=custom_mean_squared_error,
+                 optimizer=optimizer,
+                 metrics=metrics,
+                 epochs=50,
+                 patience=10):
         self.name = "RNN"
-        self.loss = loss
+        self.loss = custom_mean_squared_error
         self.optimizer = optimizer
         self.metrics = metrics
         self.L1 = L1
@@ -163,7 +185,9 @@ class RnnDlModel():
                          activity_regularizer=reg_l1_l2))
         #self.model.add(layers.Dropout(rate=0.2))
         self.model.add(layers.Dense(1, activation="linear"))
-        self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+        self.model.compile(loss=custom_mean_squared_error,
+                           optimizer=optimizer,
+                           metrics=metrics)
         return self
 
     def fit(self, X_train, y_train, verbose = 1):
@@ -201,13 +225,13 @@ class RnnDlModel_test():
     def __init__(self,
                  L1=0.01,
                  L2=0.01,
-                 loss=loss,
+                 loss=custom_mean_squared_error,
                  optimizer=optimizer,
                  metrics=metrics,
                  epochs=50,
                  patience=10):
         self.name = "RNN"
-        self.loss = loss
+        self.loss = custom_mean_squared_error
         self.optimizer = optimizer
         self.metrics = metrics
         self.L1 = L1
@@ -236,23 +260,31 @@ class RnnDlModel_test():
         return X_test_scaled, X_train_scaled
 
     def set_model(self):
+        #Sequence ini
         self.model = Sequential()
 
-        # reg_l1 = regularizers.L1(self.L1)
-        # reg_l2 = regularizers.L2(self.L2)
-        # reg_l1_l2 = regularizers.l1_l2(l1=0.005, l2=0.0005)
+        #Setting regularization
+        reg_l1 = regularizers.L1(self.L1)
+        reg_l2 = regularizers.L2(self.L2)
+        reg_l1_l2 = regularizers.l1_l2(l1=0.005, l2=0.0005)
 
-        self.model.add(GRU(units=32, return_sequences=False,
-                           activation='relu'))
+        #adding GRU layers
+        self.model.add(
+            GRU(units=64, return_sequences=True, activation='relu'))
+        self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(
+            GRU(units=16, return_sequences=False, activation='relu'))
 
-        self.model.add(
-            layers.Dense(16, activation="relu"))
-        #self.model.add(layers.Dropout(rate=0.2))
-        self.model.add(
-            layers.Dense(8, activation="relu"))
-        #self.model.add(layers.Dropout(rate=0.2))
+        #adding dense layers
+
+        self.model.add(layers.Dense(32, activation="relu"))
+
+        self.model.add(layers.Dense(8, activation="relu"))
+
         self.model.add(layers.Dense(1, activation="linear"))
-        self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+        self.model.compile(loss=custom_mean_squared_error,
+                           optimizer=optimizer,
+                           metrics=metrics)
         return self
 
     def fit(self, X_train, y_train, verbose=1):
@@ -270,6 +302,8 @@ class RnnDlModel_test():
             workers=8,
             use_multiprocessing=True,
             verbose=verbose)
+
+
         return self
 
     def predict(self, X_test):
