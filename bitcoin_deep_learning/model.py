@@ -177,7 +177,7 @@ class RnnDlModel():
             validation_split=0.2,
             #validation_data = (X_test,Y_test),
             callbacks=[es],
-            workers=6,
+            workers=8,
             use_multiprocessing=True,
             verbose=verbose)
         return self
@@ -188,6 +188,96 @@ class RnnDlModel():
 
     def run(self, X_test, X_train, y_train):
         X_test,X_train = self.preproc(X_test, X_train)
+        self.set_model()
+        self.fit(X_train, y_train)
+        return self.predict(X_test)
+
+
+class RnnDlModel_test():
+    """
+    Return the last value on the price column
+    """
+
+    def __init__(self,
+                 L1=0.01,
+                 L2=0.01,
+                 loss=loss,
+                 optimizer=optimizer,
+                 metrics=metrics,
+                 epochs=50,
+                 patience=10):
+        self.name = "RNN"
+        self.loss = loss
+        self.optimizer = optimizer
+        self.metrics = metrics
+        self.L1 = L1
+        self.L2 = L2
+        self.epochs = epochs
+        self.patience = patience
+        self.history = None
+        self.model = None
+        self.hyperparams = {
+            "L1": self.L1,
+            "L2": self.L2,
+            "epochs": self.epochs,
+            "patience": self.patience
+        }
+
+    def preproc(self, X_test, X_train, y_train=None):
+        #Compute X_train.min
+        #Compute X_train.max
+        mins = np.expand_dims(np.min(X_train, axis=(0, 1)), (0, 1))
+        maxes = np.expand_dims(np.max(X_train, axis=(0, 1)), (0, 1))
+        X_train_scaled = (X_train - mins) / (maxes - mins)
+        #Scaler X_train
+        #Scaler X_test
+        X_test_scaled = (X_test - mins) / (maxes - mins)
+        #print(np.max(X_train_scaled, axis = (0,1)))#
+        return X_test_scaled, X_train_scaled
+
+    def set_model(self):
+        self.model = Sequential()
+
+        # reg_l1 = regularizers.L1(self.L1)
+        # reg_l2 = regularizers.L2(self.L2)
+        # reg_l1_l2 = regularizers.l1_l2(l1=0.005, l2=0.0005)
+
+        self.model.add(GRU(units=32, return_sequences=False,
+                           activation='relu'))
+
+        self.model.add(
+            layers.Dense(16, activation="relu"))
+        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(
+            layers.Dense(8, activation="relu"))
+        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dense(1, activation="linear"))
+        self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+        return self
+
+    def fit(self, X_train, y_train, verbose=1):
+        #print(X_train.shape)
+        es = EarlyStopping(patience=self.patience, restore_best_weights=True)
+        self.history = self.model.fit(
+            X_train,
+            y_train,
+            batch_size=
+            64,  # Too small --> no generalization. Too large --> compute slowly
+            epochs=self.epochs,
+            validation_split=0.2,
+            #validation_data = (X_test,Y_test),
+            callbacks=[es],
+            workers=8,
+            use_multiprocessing=True,
+            verbose=verbose)
+        return self
+
+    def predict(self, X_test):
+        y_pred = self.model.predict(X_test)
+        return y_pred
+
+    def run(self, X_test, X_train, y_train):
+        X_test, X_train = self.preproc(X_test, X_train)
         self.set_model()
         self.fit(X_train, y_train)
         return self.predict(X_test)
