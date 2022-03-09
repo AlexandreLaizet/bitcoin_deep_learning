@@ -763,17 +763,17 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
 
     return portfolio_positions_hodler, portfolio_positions_trader, portfolio_positions_whale, portfolio_positions_hodler_whale, portfolio_positions_charles
 
-def plot_portolio_positions(positions=iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train'))):
+def plot_portolio_positions(fold = 0, positions=iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train'))):
 
     hodler, trader, whale, hodler_whale, charles = positions
 
     figure(figsize=(10, 6), dpi=100)
 
-    plt.plot(hodler[0][:-1], label="Hodler")
-    plt.plot(trader[0][:-1], label="Trader")
-    plt.plot(whale[0][:-1], label="Whale")
-    plt.plot(hodler_whale[0][:-1], label="Hodler whale")
-    plt.plot(charles[0][:-1], label="Charles")
+    plt.plot(hodler[fold], label="Hodler")
+    plt.plot(trader[fold], label="Trader")
+    plt.plot(whale[fold], label="Whale")
+    plt.plot(hodler_whale[fold], label="Hodler whale")
+    plt.plot(charles[fold], label="Charles")
 
     plt.title("Investment strategies' results by investment strategy")
     plt.xlabel("Days")
