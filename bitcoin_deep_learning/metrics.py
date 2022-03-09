@@ -699,16 +699,9 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     #realities, predictions, = cross_val(model, df)
     #past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
     past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
-    ct = 0
-    preds = []
     preds_arr = []
     for past_prices, diffs in zip(past_realities,prediction_diff):
-        for diff in diffs:
-            preds.append(past_prices[ct] + past_prices[ct] * diff)
-            ct += 1
-        preds_arr.append(np.array(preds))
-        preds.clear()
-        ct = 0
+        preds_arr.append(past_prices * diffs+ past_prices )
 
     #for reality, prediction in zip(realities,prediction_diff):
     for reality, prediction in zip(realities, preds_arr):
@@ -740,17 +733,10 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
     portfolio_positions_charles = []
 
     past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
-    ct = 0
-    preds = []
     preds_arr = []
-
     for past_prices, diffs in zip(past_realities,prediction_diff):
-        for diff in diffs:
-            preds.append(past_prices[ct] + past_prices[ct] * diff)
-            ct += 1
-        preds_arr.append(np.array(preds))
-        preds.clear()
-        ct = 0
+        preds_arr.append(past_prices * diffs+ past_prices )
+
 
     for reality, prediction in zip(realities, preds_arr):
         y_true, y_pred = reality, prediction
