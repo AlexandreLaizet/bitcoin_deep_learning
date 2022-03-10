@@ -794,7 +794,7 @@ if __name__ == '__main__':
 
     #print(len(preds_arr))
 
-    model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001)
+    #model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001)
     #model = DummyModel()
     #model = RnnDlModel()
 
