@@ -329,7 +329,7 @@ class RandomForestReg():
     """
     def __init__(self,n_estimators=1000,criterion="absolute_error",
                 warm_start=False,max_features="auto",
-                bootstrap=None,max_depht=None,
+                bootstrap=None,max_depth=None,
                 min_samples_split=2,min_samples_leaf=1):
         self.estimators = n_estimators
         self.criterion = criterion
@@ -339,7 +339,7 @@ class RandomForestReg():
         self.max_features=max_features,
         self.bootstrap=bootstrap,
         self.criterion=criterion,
-        self.max_depht=max_depht,
+        self.max_depth=max_depth,
         self.min_samples_split=min_samples_split,
         self.min_samples_leaf=min_samples_leaf
         self.hyperparams = "None"
@@ -366,12 +366,14 @@ class RandomForestReg():
     def set_model(self):
         self.model = RandomForestRegressor(n_estimators=self.estimators,
                             warm_start=self.warm_start,
-                            max_features=self.max_features,
+                            #max_features=self.max_features,
                             bootstrap=self.bootstrap,
-                            max_depht=self.max_depht,
-                            min_samples_split=self.min_samples_split,
-                            min_samples_leaf=self.min_samples_leaf)
+                            #max_depth=self.max_depth,
+                            #min_samples_split=self.min_samples_split,
+                            min_samples_leaf=self.min_samples_leaf,
+                            criterion="squared_error"
         )
+
         return self
 
     def fit(self, X_train, y_train = None):
