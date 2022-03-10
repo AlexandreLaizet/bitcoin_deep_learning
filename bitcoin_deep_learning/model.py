@@ -367,7 +367,7 @@ class RandomForestReg():
                             #max_depth=self.max_depth,
                             #min_samples_split=self.min_samples_split,
                             min_samples_leaf=self.min_samples_leaf,
-                            criterion="squared_error"
+                            #criterion="squared_error"
         )
 
         return self
