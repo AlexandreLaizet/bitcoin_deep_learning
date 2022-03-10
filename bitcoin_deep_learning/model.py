@@ -67,10 +67,10 @@ class LinearRegressionBaselineModel():
     def preproc(self, X_test, X_train):
         scaler = MinMaxScaler()
         X_train = X_train[:, -1, :]
-        scaler.fit(X_train)
-        X_train = scaler.transform(X_train)
+        #scaler.fit(X_train)
+        #X_train = scaler.transform(X_train)
         X_test = X_test[:, -1, :]
-        X_test = scaler.transform(X_test)
+        #_test = scaler.transform(X_test)
         #scaling y_train ?
         return X_test, X_train
 
@@ -419,7 +419,7 @@ if __name__ == '__main__':
     # rnn_model = RnnDlModel()
     # print(cross_val(rnn_model, df))
 
-    df = ApiCall().read_local(data="train")
-    model = LinearRegressionBaselineModel()
+    #df = ApiCall().read_local(data="train")
+    #model = LinearRegressionBaselineModel()
 
-    train(model,df)
+    #train(model,df)
