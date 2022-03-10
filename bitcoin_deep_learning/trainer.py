@@ -82,6 +82,7 @@ def cv_train(model,
                             "roi_charles": roi_charles,
                             "sharpe_charles":sharpe_charles})
             print("Training with trader done")
+            return fold_score, score
 
 
 #train(model,df,)
