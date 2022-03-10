@@ -150,8 +150,9 @@ def cross_val(model, df,
         print(f"{model.name} has been cross-validated")
     return reality, prediction
 
-def get_cross_XY(df, data="train", verbose = 0):
+def get_cross_XY(df=None, data="train", verbose = 0):
     '''    return (X_train_list, Y_train_list, X_test_list,Y_test_list)
+    data=None
     '''
     if data == "train":
         df = ApiCall().read_local(data=data)
