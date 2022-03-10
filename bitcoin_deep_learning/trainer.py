@@ -84,7 +84,7 @@ def cv_train(model,
             print("Training with trader done")
 
 
-train(model,df,)
+#train(model,df,)
 
 
 
