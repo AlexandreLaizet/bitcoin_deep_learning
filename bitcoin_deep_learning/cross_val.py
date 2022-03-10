@@ -9,7 +9,8 @@ import numpy as np
 
 from bitcoin_deep_learning.model import LinearRegressionBaselineModel, RnnDlModel
 from bitcoin_deep_learning.call_api import ApiCall
-from bitcoin_deep_learning.params import(FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,HORIZON)
+from bitcoin_deep_learning.params import(FOLD_TRAIN_SIZE,FOLD_TEST_SIZE,
+                                         HORIZON, SEQUENCE_LENGHT)
 from sklearn.metrics import mean_absolute_error
 from tqdm import tqdm
 
@@ -277,31 +278,97 @@ def one_fold_cross_val(model, df,
     return reality, prediction
 
 def cross_val_trade(model, df,
+                    cv=True,
               verbose:int=0,
-              saving:bool=False,
-              metrics=[],
-              trader_metrics=[],
               hyperparams=None):
     '''Compute and process a complete cross validation of a given model,
     taking personalised metrics into account
     params :
     verbose range from 0 to 10 and allow to print a few informations during the
         process
-    return reality, prediction '''
+    return reality, prediction
+    if cv = False this function will train on the whole dataframe without making fold and
+    predict the last 90 days you can plot with :
+    Y_true_past, Y_true, Y_test, Y_pred = cross_val_trade(model,df,cv=False,verbose=True)
+    fig,axs = plt.subplots(2,1)
+    axs[0].plot(Y_test)
+    axs[0].plot(Y_pred, c= "r")
+    plt.show
+    axs[1].plot(Y_true)
+    axs[1].plot(Y_true_past + Y_true_past* Y_pred, c= "r")
+    '''
     df = df.drop(columns=["date"])
     # Initializing the variable to return
     prediction_diff, past_reality, reality, reality_diff = [], [], [], []
     # Setting the indexes to cut the df into folds
-    start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
-        df=df,verbose=verbose)
-    # Starting the iteration on folds
-    for i in range(len(start_fold_train)):
-        # reinitialise the model between two folds to reset training
-        model.set_model()
-        # instantiating train fold
-        train_fold_df = df.loc[start_fold_train[i]:
-                                 end_fold_train[i]].copy().reset_index(drop=True)
-        # Setting the indexes to cut the train_fold in regular sequences and targets
+    if cv == True :
+        start_fold_train, end_fold_train, start_fold_test, end_fold_test = fold_indexes(
+            df=df,verbose=verbose)
+        # Starting the iteration on folds
+        for i in range(len(start_fold_train)):
+            # reinitialise the model between two folds to reset training
+            model.set_model()
+            # instantiating train fold
+            train_fold_df = df.loc[start_fold_train[i]:
+                                    end_fold_train[i]].copy().reset_index(drop=True)
+            # Setting the indexes to cut the train_fold in regular sequences and targets
+            sequence_starts, sequence_stops, target_idx = sequence_indexes(
+                df=train_fold_df,verbose=verbose)
+            # Initializing the X_train, Y_train
+            X_train, Y_train = [], []
+            # Starting the iteration on the sequences to create X,Y_train
+            for j in range(len(sequence_starts)):
+
+                X_train_seq = np.array(
+                    train_fold_df.iloc[sequence_starts[j]:sequence_stops[j]])
+                y_train = train_fold_df.iloc[target_idx[j], -1]
+                #Converting the little df to np array
+                X_train.append(np.array(X_train_seq))
+                Y_train.append(np.array(y_train))
+            # Converting the list of array to an array
+            Y_train = np.array(Y_train)
+            X_train = np.array(X_train)
+
+            #Same process as ahead but on the test_fold
+            test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
+            ).reset_index(drop=True)
+            sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
+            Y_test,X_test,Y_true_price_past, Y_true_price = [],[],[], []
+
+            for j in range(len(sequence_starts)):
+                X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j]]
+                y_test = test_fold_df.iloc[target_idx[j], -1]
+                y_true_price_past = test_fold_df.iloc[target_idx[j]-HORIZON, -2]
+                y_true_price = test_fold_df.iloc[target_idx[j], -2]
+
+                #y_true_price_minus_horizon = test_fold_df.iloc[target_idx[j], -2]
+                X_test.append(np.array(X_test_seq))
+                Y_true_price_past.append(y_true_price_past)
+                Y_true_price.append(y_true_price)
+                Y_test.append(np.array(y_test))
+
+            Y_test = np.array(Y_test)
+            Y_true_past = np.array(Y_true_price_past)
+            Y_true = np.array(Y_true_price)
+            X_test = np.array(X_test)
+            # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
+
+            #TODO SHUFFLING THE X,y
+            Y_pred = model.run(X_test,X_train, Y_train)
+
+            # Keeping these lines in case we want to use Y_test, Y_pred in the futur
+            prediction_diff.append(Y_pred)
+            reality_diff.append(Y_test)
+            past_reality.append(Y_true_past)
+            reality.append(Y_true)
+
+        # NOTA BENE PAST_REALITY HERE IS {HORIZON DAYS BEHIND REALITY}
+        return past_reality, reality,reality_diff, prediction_diff
+    else :
+        train_fold_df = df.iloc[:-90]
+        test_fold_df = df.iloc[-(90+SEQUENCE_LENGHT+HORIZON):]
+    # Setting the indexes to cut the train_fold in regular sequences and targets
+        print(train_fold_df.shape)
         sequence_starts, sequence_stops, target_idx = sequence_indexes(
             df=train_fold_df,verbose=verbose)
         # Initializing the X_train, Y_train
@@ -319,12 +386,11 @@ def cross_val_trade(model, df,
         Y_train = np.array(Y_train)
         X_train = np.array(X_train)
 
-        #Same process as ahead but on the test_fold
-        test_fold_df = df.loc[start_fold_test[i]:end_fold_test[i]].copy(
-        ).reset_index(drop=True)
-        sequence_starts, sequence_stops, target_idx = sequence_indexes(df=test_fold_df,verbose=verbose)
         Y_test,X_test,Y_true_price_past, Y_true_price = [],[],[], []
 
+        # Setting the indexes to cut the test_fold in regular sequences and targets
+        sequence_starts, sequence_stops, target_idx = sequence_indexes(
+            df=test_fold_df,verbose=verbose)
         for j in range(len(sequence_starts)):
             X_test_seq = test_fold_df.iloc[sequence_starts[j]:sequence_stops[j]]
             y_test = test_fold_df.iloc[target_idx[j], -1]
@@ -346,14 +412,13 @@ def cross_val_trade(model, df,
         #TODO SHUFFLING THE X,y
         Y_pred = model.run(X_test,X_train, Y_train)
 
-        # Keeping these lines in case we want to use Y_test, Y_pred in the futur
-        prediction_diff.append(Y_pred)
-        reality_diff.append(Y_test)
-        past_reality.append(Y_true_past)
-        reality.append(Y_true)
+        return Y_true_past, Y_true, Y_test, Y_pred
 
-    # NOTA BENE PAST_REALITY HERE IS {HORIZON DAYS BEHIND REALITY}
-    return past_reality, reality,reality_diff, prediction_diff
+
+
+
+
+
 
 
 if __name__ == "__main__":
