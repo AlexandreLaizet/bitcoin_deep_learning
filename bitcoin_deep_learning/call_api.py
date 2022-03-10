@@ -187,11 +187,11 @@ class ApiCall():
 
         df = pd.read_csv(os.path.join(ROOT_DIR, "data_raw", f'{name}.csv'))#('../data_raw/'+name+'.csv')
         # We verify if the local data is up to date
-        # if not  (pd.Timestamp(df["date"].iloc[-1]) ==
-        #                     pd.Timestamp(date.today()- timedelta(days = 1))) :
-        #     df = self.data_to_csv(name)
-        #     self.save_train_val_test_split(df)
-        #     print("Data is up to date and has been loaded from local")
+        if not  (pd.Timestamp(df["date"].iloc[-1]) ==
+                           pd.Timestamp(date.today()- timedelta(days = 1))) :
+            df = self.data_to_csv(name)
+            self.save_train_val_test_split(df)
+            print("Data is up to date and has been loaded from local")
         if data == "train":
             return pd.read_csv(os.path.join(ROOT_DIR, "data_raw", 'train_df.csv'))
         if data == 'val':

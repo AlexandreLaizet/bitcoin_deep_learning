@@ -61,7 +61,9 @@ def cv_train(model,
             pd.DataFrame(columns=fieldnames).to_csv(file_path,index=False)
         # Append a new line with current CV results
         with open(file_path , 'a', newline='') as csvfile:
-            roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results()
+            (roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles,
+             sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale,
+             sharpe_charles) = iterate_cross_val_results(model=mode,df=df)
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
             writer.writerow({"name":model.name, "fold_score":fold_score,
@@ -81,6 +83,8 @@ def cv_train(model,
                             "sharpe_charles":sharpe_charles})
             print("Training with trader done")
 
+
+#train(model,df,)
 
 
 
