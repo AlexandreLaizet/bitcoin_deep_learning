@@ -549,7 +549,7 @@ def play_charles_strategy(y_true,
                           y_pred,
                           total_investment = 3000,
                           investment_horizon = 7,
-                          buy_threshold = -0.05,
+                          buy_threshold = 0.05,
                           sell_threshold = - 0.30,
                           exchange_fee = 0.005,
                           tax_rate = 0.30):
@@ -749,7 +749,9 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
 
     return portfolio_positions_hodler, portfolio_positions_trader, portfolio_positions_whale, portfolio_positions_hodler_whale, portfolio_positions_charles
 
-def plot_portolio_positions(fold = 0, positions=iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train'))):
+def plot_portolio_positions(fold = 0, model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train')):
+
+    positions = iterate_portfolio_positions(model, df = df)
 
     hodler, trader, whale, hodler_whale, charles = positions
 
