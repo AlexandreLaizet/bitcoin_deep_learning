@@ -411,8 +411,8 @@ def cross_val_trade(model, df,
 
         #TODO SHUFFLING THE X,y
         Y_diff_pred = model.run(X_test,X_train, Y_train)
-
-        return Y_true_past, Y_true, Y_diff_test, Y_diff_pred
+        # returned in a list shape
+        return [Y_true_past], [Y_true], [Y_diff_test], [Y_diff_pred]
 
 
 
