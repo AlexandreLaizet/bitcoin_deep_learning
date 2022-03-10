@@ -119,7 +119,7 @@ def custom_mean_squared_error(y_true, y_pred):
 #metrics= ['mae, mape']
 metrics = 'mae'
 loss = 'mse'
-optimizer = RMSprop(learning_rate=0.001)
+optimizer = RMSprop(learning_rate=0.005)
 
 class RnnDlModel():
     """
@@ -269,9 +269,6 @@ class RnnDlModel_test():
 
         #adding GRU layers
         self.model.add(
-            GRU(units=128, return_sequences=True, activation='relu'))
-        self.model.add(layers.Dropout(rate=0.2))
-        self.model.add(
             GRU(units=64, return_sequences=True, activation='relu'))
         self.model.add(layers.Dropout(rate=0.2))
         self.model.add(
@@ -280,7 +277,6 @@ class RnnDlModel_test():
             GRU(units=16, return_sequences=False, activation='tanh'))
 
         #adding dense layers
-
         self.model.add(layers.Dense(32, activation="relu"))
 
         self.model.add(layers.Dense(16, activation="relu"))
