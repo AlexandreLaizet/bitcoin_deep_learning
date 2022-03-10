@@ -10,7 +10,7 @@ HORIZON  = 7
 load_dotenv()
 API_KEY = os.getenv('API_KEY')
 # gap = HORIZON-1
-# sequence_lenght = 90
+SEQUENCE_LENGHT = 90
 # fold_step = 30
 # sample_step = 1
 ################################################################################

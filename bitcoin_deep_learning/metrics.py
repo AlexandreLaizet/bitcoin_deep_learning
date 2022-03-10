@@ -549,7 +549,7 @@ def play_charles_strategy(y_true,
                           y_pred,
                           total_investment = 3000,
                           investment_horizon = 7,
-                          buy_threshold = 0.05,
+                          buy_threshold = 0.00,
                           sell_threshold = - 0.30,
                           exchange_fee = 0.005,
                           tax_rate = 0.30):
@@ -724,7 +724,7 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
 
     return np.array(roi_hodler).mean(), np.array(roi_trader).mean(), np.array(roi_whale).mean(), np.array(roi_hodler_whale).mean(), np.array(roi_charles).mean(), np.array(sharpe_hodler).mean(), np.array(sharpe_trader).mean(), np.array(sharpe_whale).mean(), np.array(sharpe_hodler_whale).mean(), np.array(sharpe_charles).mean()
 
-def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train')):
+def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'all'), cv=False, verbose=True):
 
     portfolio_positions_hodler = []
     portfolio_positions_trader = []
@@ -732,7 +732,7 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
     portfolio_positions_hodler_whale = []
     portfolio_positions_charles = []
 
-    past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
+    past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df, cv=cv, verbose=verbose)
     preds_arr = []
     for past_prices, diffs in zip(past_realities,prediction_diff):
         preds_arr.append(past_prices * diffs+ past_prices )
@@ -740,6 +740,8 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
 
     for reality, prediction in zip(realities, preds_arr):
         y_true, y_pred = reality, prediction
+
+        print(y_true)
 
         portfolio_positions_hodler.append(play_hodler_strategy(y_true, y_pred))
         portfolio_positions_trader.append(play_trader_strategy(y_true, y_pred))
@@ -751,7 +753,7 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
 
 def plot_portolio_positions(fold = 0, model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001), df = ApiCall().read_local(data = 'train')):
 
-    positions = iterate_portfolio_positions(model, df = df)
+    positions = iterate_portfolio_positions()
 
     hodler, trader, whale, hodler_whale, charles = positions
 
@@ -796,26 +798,30 @@ if __name__ == '__main__':
 
     #print(len(preds_arr))
 
+    print(iterate_portfolio_positions())
+
+
+
     #model = LinearRegressionBaselineModel(alpha = 0.05 , l1_ratio = 0.0001)
     #model = DummyModel()
     #model = RnnDlModel()
 
-    roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
-    print("---")
-    print("Hodler roi: ", roi_hodler)
-    print("Hodler sharpe ratio: ", sharpe_hodler)
-    print("---")
-    print("Trader roi: ", roi_trader)
-    print("Trader sharpe ratio: ", sharpe_trader)
-    print("---")
-    print("Whale roi: ", roi_whale)
-    print("Whale sharpe ratio: ", sharpe_whale)
-    print("---")
-    print("Hodler whale roi: ", roi_hodler_whale)
-    print("Hodler whale sharpe ratio: ", sharpe_hodler_whale)
-    print("---")
-    print("Charles roi: ", roi_charles)
-    print("Charles sharpe ratio: ", sharpe_charles)
+    #roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles, sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale, sharpe_charles = iterate_cross_val_results(model = model)
+    #print("---")
+    #print("Hodler roi: ", roi_hodler)
+    #print("Hodler sharpe ratio: ", sharpe_hodler)
+    #print("---")
+    #print("Trader roi: ", roi_trader)
+    #print("Trader sharpe ratio: ", sharpe_trader)
+    #print("---")
+    #print("Whale roi: ", roi_whale)
+    #print("Whale sharpe ratio: ", sharpe_whale)
+    #print("---")
+    #print("Hodler whale roi: ", roi_hodler_whale)
+    #print("Hodler whale sharpe ratio: ", sharpe_hodler_whale)
+    #print("---")
+    #print("Charles roi: ", roi_charles)
+    #print("Charles sharpe ratio: ", sharpe_charles)
 
     # df = ApiCall().read_local()
     # model = LinearRegressionBaselineModel()
