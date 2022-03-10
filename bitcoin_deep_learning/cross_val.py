@@ -289,7 +289,7 @@ def cross_val_trade(model, df,
     return reality, prediction
     if cv = False this function will train on the whole dataframe without making fold and
     predict the last 90 days you can plot with :
-    Y_true_past, Y_true, Y_test, Y_pred = cross_val_trade(model,df,cv=False,verbose=True)
+    Y_true_past, Y_true, Y_diff_test, Y_diff_pred = cross_val_trade(model,df,cv=False,verbose=True)
     fig,axs = plt.subplots(2,1)
     axs[0].plot(Y_test)
     axs[0].plot(Y_pred, c= "r")
@@ -403,16 +403,16 @@ def cross_val_trade(model, df,
             Y_true_price.append(y_true_price)
             Y_test.append(np.array(y_test))
 
-        Y_test = np.array(Y_test)
+        Y_diff_test = np.array(Y_test)
         Y_true_past = np.array(Y_true_price_past)
         Y_true = np.array(Y_true_price)
         X_test = np.array(X_test)
         # Now we have an X_test,Y_test , X_train,Y_train ready to be processed
 
         #TODO SHUFFLING THE X,y
-        Y_pred = model.run(X_test,X_train, Y_train)
+        Y_diff_pred = model.run(X_test,X_train, Y_train)
 
-        return Y_true_past, Y_true, Y_test, Y_pred
+        return Y_true_past, Y_true, Y_diff_test, Y_diff_pred
 
 
 
