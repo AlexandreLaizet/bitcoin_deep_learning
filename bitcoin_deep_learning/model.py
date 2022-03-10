@@ -119,7 +119,7 @@ def custom_mean_squared_error(y_true, y_pred):
 #metrics= ['mae, mape']
 metrics = 'mae'
 loss = 'mse'
-optimizer = RMSprop(learning_rate=0.005)
+optimizer = RMSprop(learning_rate=0.0005)
 
 class RnnDlModel():
     """
