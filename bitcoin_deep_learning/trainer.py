@@ -63,7 +63,7 @@ def cv_train(model,
         with open(file_path , 'a', newline='') as csvfile:
             (roi_hodler, roi_trader, roi_whale, roi_hodler_whale, roi_charles,
              sharpe_hodler, sharpe_trader, sharpe_whale, sharpe_hodler_whale,
-             sharpe_charles) = iterate_cross_val_results(model=mode,df=df)
+             sharpe_charles) = iterate_cross_val_results(model=model,df=df)
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
             writer.writerow({"name":model.name, "fold_score":fold_score,
