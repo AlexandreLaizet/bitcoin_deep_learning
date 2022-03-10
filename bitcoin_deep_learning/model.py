@@ -11,7 +11,7 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import SimpleRNN, LSTM, GRU
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, RMSprop
 import tensorflow as tf
 
 import pandas as pd
@@ -119,7 +119,7 @@ def custom_mean_squared_error(y_true, y_pred):
 #metrics= ['mae, mape']
 metrics = 'mae'
 loss = 'mse'
-optimizer = Adam(learning_rate=0.001)
+optimizer = RMSprop(learning_rate=0.001)
 
 class RnnDlModel():
     """
@@ -269,14 +269,21 @@ class RnnDlModel_test():
 
         #adding GRU layers
         self.model.add(
+            GRU(units=128, return_sequences=True, activation='relu'))
+        self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(
             GRU(units=64, return_sequences=True, activation='relu'))
         self.model.add(layers.Dropout(rate=0.2))
         self.model.add(
-            GRU(units=16, return_sequences=False, activation='relu'))
+            GRU(units=32, return_sequences=True, activation='tanh'))
+        self.model.add(
+            GRU(units=16, return_sequences=False, activation='tanh'))
 
         #adding dense layers
 
         self.model.add(layers.Dense(32, activation="relu"))
+
+        self.model.add(layers.Dense(16, activation="relu"))
 
         self.model.add(layers.Dense(8, activation="relu"))
 
