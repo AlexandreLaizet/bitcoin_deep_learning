@@ -320,24 +320,51 @@ class RandomForestReg():
     """
     Predict y_pred based on a linear regression
     """
-    def __init__(self,n_estimators=1000):
-        self.name = "ClassicLinearReg"
+    def __init__(self,n_estimators=1000,criterion="absolute_error",
+                warm_start=False,max_features="auto",
+                bootstrap=None,max_depht=None,
+                min_samples_split=2,min_samples_leaf=1):
         self.estimators = n_estimators
-        self.hyperparams = {"n_estimator":self.estimators}
+        self.criterion = criterion
+        self.name = "RandomForestReg"
+        self.estimators = n_estimators
+        self.warm_start=warm_start,
+        self.max_features=max_features,
+        self.bootstrap=bootstrap,
+        self.criterion=criterion,
+        self.max_depht=max_depht,
+        self.min_samples_split=min_samples_split,
+        self.min_samples_leaf=min_samples_leaf
+        self.hyperparams = "None"
+        # {"n_estimator":self.estimators,
+        #                     "warm_start":self.warm_start,
+        #                     "max_features":self.max_features,
+        #                     "bootstrap":self.bootstrap,
+        #                     "criterion":self.criterion,
+        #                     "max_depht":self.max_depht,
+        #                     "min_samples_split":self.min_samples_split,
+        #                     "min_samples_leaf":self.min_samples_leaf}
         self.set_model()
 
     def preproc(self, X_test, X_train):
-        scaler = MinMaxScaler()
+        #scaler = MinMaxScaler()
         X_train = X_train[:, -1, :]
-        scaler.fit(X_train)
-        X_train = scaler.transform(X_train)
+        #scaler.fit(X_train)
+        #X_train = scaler.transform(X_train)
         X_test = X_test[:, -1, :]
-        X_test = scaler.transform(X_test)
+        #X_test = scaler.transform(X_test)
         #scaling y_train ?
         return X_test, X_train
 
     def set_model(self):
-        self.model = RandomForestRegressor()
+        self.model = RandomForestRegressor(n_estimators=self.estimators,
+                            warm_start=self.warm_start,
+                            max_features=self.max_features,
+                            bootstrap=self.bootstrap,
+                            max_depht=self.max_depht,
+                            min_samples_split=self.min_samples_split,
+                            min_samples_leaf=self.min_samples_leaf)
+        )
         return self
 
     def fit(self, X_train, y_train = None):
