@@ -6,3 +6,4 @@ data_raw/*
 *.csv
 **/__pycache__/
 .env
+etienne.ipynb
