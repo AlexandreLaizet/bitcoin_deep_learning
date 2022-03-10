@@ -150,11 +150,12 @@ def cross_val(model, df,
         print(f"{model.name} has been cross-validated")
     return reality, prediction
 
-def get_cross_XY(data="train", verbose = 0):
+def get_cross_XY(df, data="train", verbose = 0):
     '''    return (X_train_list, Y_train_list, X_test_list,Y_test_list)
     '''
-    df = ApiCall().read_local(data=data)
-    df = df.drop(columns=["date"])
+    if data == "train":
+        df = ApiCall().read_local(data=data)
+        df = df.drop(columns=["date"])
     # Initializing the variable to return
     X_train_list, Y_train_list, X_test_list,Y_test_list = [], [], [],[]
     # Setting the indexes to cut the df into folds
