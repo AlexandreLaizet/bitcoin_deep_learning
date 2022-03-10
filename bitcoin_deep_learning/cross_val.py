@@ -368,7 +368,6 @@ def cross_val_trade(model, df,
         train_fold_df = df.iloc[:-90]
         test_fold_df = df.iloc[-(90+SEQUENCE_LENGHT+HORIZON):]
     # Setting the indexes to cut the train_fold in regular sequences and targets
-        print(train_fold_df.shape)
         sequence_starts, sequence_stops, target_idx = sequence_indexes(
             df=train_fold_df,verbose=verbose)
         # Initializing the X_train, Y_train
