@@ -50,7 +50,7 @@ def compute_sharpe_ratio(select_strategy):
 
 def play_hodler_strategy(y_true,
                         y_pred,
-                        total_investment = 3000,
+                        total_investment = 100,
                         investment_horizon = 7,
                         exchange_fee = 0.005,
                         tax_rate = 0.30):
@@ -148,7 +148,7 @@ def play_hodler_strategy(y_true,
 
 def play_trader_strategy(y_true,
                          y_pred,
-                         total_investment = 3000,
+                         total_investment = 100,
                          investment_horizon = 7,
                          buy_threshold = 0.10,
                          sell_threshold = - 0.05,
@@ -281,7 +281,7 @@ def play_trader_strategy(y_true,
 
 def play_whale_strategy(y_true,
                         y_pred,
-                        total_investment = 3000,
+                        total_investment = 100,
                         investment_horizon = 7,
                         buy_threshold = 0.15,
                         sell_threshold = - 0.05,
@@ -414,7 +414,7 @@ def play_whale_strategy(y_true,
 
 def play_hodler_whale_strategy(y_true,
                                y_pred,
-                               total_investment = 3000,
+                               total_investment = 100,
                                investment_horizon = 7,
                                buy_threshold = 0.15,
                                sell_threshold = - 1,
@@ -547,7 +547,7 @@ def play_hodler_whale_strategy(y_true,
 
 def play_charles_strategy(y_true,
                           y_pred,
-                          total_investment = 3000,
+                          total_investment = 100,
                           investment_horizon = 7,
                           buy_threshold = 0.05,
                           sell_threshold = - 0.30,
@@ -742,7 +742,7 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
 
     for reality, prediction in zip(realities, preds_arr):
         y_true, y_pred = reality, prediction
-
+        #print(y_true)
         portfolio_positions_hodler.append(play_hodler_strategy(y_true, y_pred))
         portfolio_positions_trader.append(play_trader_strategy(y_true, y_pred))
         portfolio_positions_whale.append(play_whale_strategy(y_true, y_pred))
