@@ -741,14 +741,11 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
         preds_arr.append(past_prices * diffs.reshape(1,-1) + past_prices )
 
 
-<<<<<<< HEAD
     for reality, prediction in zip(realities, preds_arr):
         y_true, y_pred = reality, prediction
         #print(y_true)
-=======
     for y_true, y_pred in zip(realities, preds_arr):
         #y_true, y_pred = reality, prediction
->>>>>>> 1dd6af60b8106dd579b546b208d44f59de58bf8c
         portfolio_positions_hodler.append(play_hodler_strategy(y_true, y_pred))
         portfolio_positions_trader.append(play_trader_strategy(y_true, y_pred))
         portfolio_positions_whale.append(play_whale_strategy(y_true, y_pred))
