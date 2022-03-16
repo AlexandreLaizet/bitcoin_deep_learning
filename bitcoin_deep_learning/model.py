@@ -119,7 +119,7 @@ def custom_mean_squared_error(y_true, y_pred):
 #metrics= ['mae, mape']
 metrics = 'mae'
 loss = 'mse'
-optimizer = RMSprop(learning_rate=0.0005)
+optimizer = RMSprop(learning_rate=0.0001)
 
 class RnnDlModel():
     """
@@ -167,22 +167,22 @@ class RnnDlModel():
         reg_l1_l2 = regularizers.l1_l2(l1=0.005, l2=0.0005)
 
         self.model.add(GRU(units=128, return_sequences=True, activation='relu'))
-        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dropout(rate=0.2))
         self.model.add(GRU(units=64, return_sequences=True, activation='relu'))
-        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dropout(rate=0.2))
         self.model.add(GRU(units=32, activation='relu'))
-        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dropout(rate=0.2))
 
         self.model.add(
             layers.Dense(32, activation="relu", kernel_regularizer=reg_l1))
-        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dropout(rate=0.2))
         self.model.add(
             layers.Dense(16, activation="relu", bias_regularizer=reg_l2))
-        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dropout(rate=0.2))
         self.model.add(
             layers.Dense(8, activation="relu",
                          activity_regularizer=reg_l1_l2))
-        #self.model.add(layers.Dropout(rate=0.2))
+        self.model.add(layers.Dropout(rate=0.2))
         self.model.add(layers.Dense(1, activation="linear"))
         self.model.compile(loss=custom_mean_squared_error,
                            optimizer=optimizer,

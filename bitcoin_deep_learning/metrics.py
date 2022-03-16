@@ -181,8 +181,9 @@ def play_trader_strategy(y_true,
     counter = 0
 
     # Loop
-    for value in list(y_true):
-
+    y_true = list(y_true)
+    y_pred = list(y_pred)
+    for value in y_true:
         if len(list(y_pred)) > counter + investment_horizon:
 
             if ((list(y_pred)[counter + investment_horizon] / value) -1) > buy_threshold:
@@ -701,7 +702,7 @@ def iterate_cross_val_results(model = LinearRegressionBaselineModel(),
     past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df)
     preds_arr = []
     for past_prices, diffs in zip(past_realities,prediction_diff):
-        preds_arr.append(past_prices * diffs+ past_prices )
+        preds_arr.append(past_prices * diffs.reshape(1,-1)+ past_prices )
 
     #for reality, prediction in zip(realities,prediction_diff):
     for reality, prediction in zip(realities, preds_arr):
@@ -737,12 +738,17 @@ def iterate_portfolio_positions(model = LinearRegressionBaselineModel(alpha = 0.
     past_realities, realities, realities_diff, prediction_diff = cross_val_trade(model, df, cv=cv, verbose=verbose)
     preds_arr = []
     for past_prices, diffs in zip(past_realities,prediction_diff):
-        preds_arr.append(past_prices * diffs+ past_prices )
+        preds_arr.append(past_prices * diffs.reshape(1,-1) + past_prices )
 
 
+<<<<<<< HEAD
     for reality, prediction in zip(realities, preds_arr):
         y_true, y_pred = reality, prediction
         #print(y_true)
+=======
+    for y_true, y_pred in zip(realities, preds_arr):
+        #y_true, y_pred = reality, prediction
+>>>>>>> 1dd6af60b8106dd579b546b208d44f59de58bf8c
         portfolio_positions_hodler.append(play_hodler_strategy(y_true, y_pred))
         portfolio_positions_trader.append(play_trader_strategy(y_true, y_pred))
         portfolio_positions_whale.append(play_whale_strategy(y_true, y_pred))
@@ -832,6 +838,10 @@ if __name__ == '__main__':
     # df = ApiCall().read_local()
     # model = LinearRegressionBaselineModel()
     # print(len(cross_val_metrics(model=model,df=df)[1]))
+    plot_portolio_positions(fold = 0, model = RnnDlModel(epochs=2,patience=2),
+                            df = ApiCall().read_local(data = 'all'),
+                                                      cv = False,
+                                                      verbose = 0)
 
 #### NOTES ####
 
